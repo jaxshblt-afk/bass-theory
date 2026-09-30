@@ -2,7 +2,7 @@ name: bass_theory
 description: Aplicativo de teoria musical para contrabaixo.
 publish_to: "none"
 
-version: 1.0.0+1
+version: 3.0.0+3
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  record: ^6.1.2
+  audioplayers: ^6.5.1
 
 dev_dependencies:
   flutter_test:
