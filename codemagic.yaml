@@ -1,0 +1,23 @@
+workflows:
+  android-debug:
+    name: Bass Theory Android
+    max_build_duration: 30
+
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Preparar projeto Android
+        script: |
+          flutter create --platforms=android .
+
+      - name: Instalar dependências
+        script: |
+          flutter pub get
+
+      - name: Gerar APK
+        script: |
+          flutter build apk --debug
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
