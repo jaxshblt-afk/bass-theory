@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class FretboardPage extends StatelessWidget {
   const FretboardPage({super.key});
 
-  final List<String> notas = const [
+  static const List<String> notas = [
     'C',
     'C#',
     'D',
@@ -19,20 +19,20 @@ class FretboardPage extends StatelessWidget {
   ];
 
   String notaNaCasa(String corda, int casa) {
-    const afinação = {
+    const afinacao = {
       'E': 4,
       'A': 9,
       'D': 2,
       'G': 7,
     };
 
-    final inicio = afinação[corda]!;
+    final inicio = afinacao[corda]!;
     return notas[(inicio + casa) % 12];
   }
 
   @override
   Widget build(BuildContext context) {
-    const strings = ['E', 'A', 'D', 'G'];
+    const cordas = ['E', 'A', 'D', 'G'];
 
     return Scaffold(
       appBar: AppBar(
@@ -52,29 +52,25 @@ class FretboardPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 8),
-
               const Text(
                 'Afinação padrão: E • A • D • G',
                 style: TextStyle(
                   color: Colors.white70,
                 ),
               ),
-
               const SizedBox(height: 20),
 
               Row(
                 children: [
                   const SizedBox(width: 40),
-
                   ...List.generate(
                     13,
-                    (casa) => Container(
-                      width: 65,
-                      alignment: Alignment.center,
+                    (casa) => SizedBox(
+                      width: 64,
                       child: Text(
-                        casa == 0 ? '0' : '$casa',
+                        '$casa',
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -86,7 +82,7 @@ class FretboardPage extends StatelessWidget {
 
               const SizedBox(height: 5),
 
-              ...strings.map(
+              ...cordas.map(
                 (corda) => Row(
                   children: [
                     SizedBox(
@@ -100,7 +96,6 @@ class FretboardPage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     ...List.generate(
                       13,
                       (casa) {
