@@ -130,17 +130,12 @@ class _TunerPageState extends State<TunerPage> {
 
     _leituras.add(frequencia);
 
-    if (_leituras.length > 8) {
+    // Aumentamos a estabilidade.
+    if (_leituras.length > 12) {
       _leituras.removeAt(0);
     }
 
-    double media = 0;
-
-    for (final valor in _leituras) {
-      media += valor;
-    }
-
-    media /= _leituras.length;
+    final media = _mediaEstavel();
 
     final resultadoMedia = _encontrarNota(media);
 
@@ -149,9 +144,17 @@ class _TunerPageState extends State<TunerPage> {
     } else {
       _notaEstavel = resultadoMedia.nota;
       _contadorNota = 1;
+
+      // Limpa leituras quando muda de corda.
+      _leituras.clear();
+      _leituras.add(frequencia);
     }
 
-    if (_contadorNota < 3) {
+    // A E grave precisa de mais confirmação.
+    final minimoLeituras =
+        resultadoMedia.nota == 'E' ? 5 : 3;
+
+    if (_contadorNota < minimoLeituras) {
       _ultimoSom = DateTime.now();
       return;
     }
@@ -166,6 +169,26 @@ class _TunerPageState extends State<TunerPage> {
       _cents = resultadoMedia.cents;
       _status = resultadoMedia.status;
     });
+  }
+
+  double _mediaEstavel() {
+    if (_leituras.isEmpty) return 0;
+
+    final ordenadas = [..._leituras]..sort();
+
+    // Remove os valores extremos.
+    if (ordenadas.length >= 5) {
+      ordenadas.removeAt(0);
+      ordenadas.removeAt(ordenadas.length - 1);
+    }
+
+    double soma = 0;
+
+    for (final valor in ordenadas) {
+      soma += valor;
+    }
+
+    return soma / ordenadas.length;
   }
 
   void _manterUltimaLeitura() {
@@ -211,20 +234,37 @@ class _TunerPageState extends State<TunerPage> {
     final maxLag =
         (sampleRate / minFreq).round();
 
-    double melhorCorrelacao = 0;
+    double melhorPontuacao = -double.infinity;
     int melhorLag = 0;
 
     for (int lag = minLag; lag <= maxLag; lag++) {
-      double soma = 0;
-
       final limite = samples.length - lag;
 
+      if (limite <= 0) continue;
+
+      double somaXY = 0;
+      double somaX2 = 0;
+      double somaY2 = 0;
+
       for (int i = 0; i < limite; i++) {
-        soma += samples[i] * samples[i + lag];
+        final x = samples[i];
+        final y = samples[i + lag];
+
+        somaXY += x * y;
+        somaX2 += x * x;
+        somaY2 += y * y;
       }
 
-      if (soma > melhorCorrelacao) {
-        melhorCorrelacao = soma;
+      final denominador =
+          sqrt(somaX2 * somaY2);
+
+      if (denominador == 0) continue;
+
+      final correlacao =
+          somaXY / denominador;
+
+      if (correlacao > melhorPontuacao) {
+        melhorPontuacao = correlacao;
         melhorLag = lag;
       }
     }
@@ -373,7 +413,7 @@ class _TunerPageState extends State<TunerPage> {
                   AnimatedPositioned(
                     duration:
                         const Duration(
-                      milliseconds: 120,
+                      milliseconds: 180,
                     ),
                     curve: Curves.easeOut,
                     left: esquerda,
