@@ -16,9 +16,15 @@ class _TunerPageState extends State<TunerPage> {
   StreamSubscription<List<int>>? _audioSubscription;
 
   bool _microfoneAtivo = false;
+
   double _frequencia = 0;
   String _nota = '—';
   String _status = 'Nenhum som detectado';
+
+  DateTime? _ultimoSom;
+
+  // Guarda as últimas frequências para deixar a leitura mais estável.
+  final List<double> _historicoFrequencias = [];
 
   @override
   void dispose() {
@@ -95,36 +101,88 @@ class _TunerPageState extends State<TunerPage> {
 
     energia = sqrt(energia / samples.length);
 
-    if (energia < 500) {
-      if (mounted) {
-        setState(() {
-          _status = 'Toque uma corda...';
-        });
-      }
+    // Sensibilidade aumentada.
+    // Antes era 500.
+    if (energia < 100) {
+      _manterUltimaLeitura();
       return;
     }
 
-    final frequencia = _detectarFrequencia(samples, 44100);
+    final frequencia = _detectarFrequencia(
+      samples,
+      44100,
+    );
 
-    if (frequencia <= 0) return;
+    if (frequencia <= 0) {
+      _manterUltimaLeitura();
+      return;
+    }
 
     final resultado = _encontrarNota(frequencia);
+
+    _historicoFrequencias.add(frequencia);
+
+    // Mantém somente as últimas 5 leituras.
+    if (_historicoFrequencias.length > 5) {
+      _historicoFrequencias.removeAt(0);
+    }
+
+    // Média das últimas leituras para reduzir oscilações.
+    double media = 0;
+
+    for (final valor in _historicoFrequencias) {
+      media += valor;
+    }
+
+    media /= _historicoFrequencias.length;
+
+    final resultadoEstavel = _encontrarNota(media);
+
+    _ultimoSom = DateTime.now();
 
     if (!mounted) return;
 
     setState(() {
-      _frequencia = frequencia;
-      _nota = resultado.nota;
-      _status = resultado.status;
+      _frequencia = media;
+      _nota = resultadoEstavel.nota;
+      _status = resultadoEstavel.status;
     });
+  }
+
+  void _manterUltimaLeitura() {
+    if (_ultimoSom == null) {
+      if (!mounted) return;
+
+      setState(() {
+        _status = 'Toque uma corda...';
+      });
+
+      return;
+    }
+
+    final tempoSemSom =
+        DateTime.now().difference(_ultimoSom!);
+
+    // Mantém a última leitura por até 1,2 segundos.
+    if (tempoSemSom.inMilliseconds > 1200) {
+      if (!mounted) return;
+
+      setState(() {
+        _frequencia = 0;
+        _nota = '—';
+        _status = 'Toque uma corda...';
+      });
+
+      _historicoFrequencias.clear();
+    }
   }
 
   double _detectarFrequencia(
     List<double> samples,
     int sampleRate,
   ) {
-    final minFreq = 35.0;
-    final maxFreq = 120.0;
+    const minFreq = 35.0;
+    const maxFreq = 120.0;
 
     final minLag = (sampleRate / maxFreq).round();
     final maxLag = (sampleRate / minFreq).round();
@@ -165,7 +223,8 @@ class _TunerPageState extends State<TunerPage> {
     double menorDiferenca = double.infinity;
 
     notas.forEach((nome, alvo) {
-      final diferenca = (frequencia - alvo).abs();
+      final diferenca =
+          (frequencia - alvo).abs();
 
       if (diferenca < menorDiferenca) {
         menorDiferenca = diferenca;
@@ -207,6 +266,9 @@ class _TunerPageState extends State<TunerPage> {
       _nota = '—';
       _status = 'Nenhum som detectado';
     });
+
+    _historicoFrequencias.clear();
+    _ultimoSom = null;
   }
 
   @override
@@ -262,7 +324,9 @@ class _TunerPageState extends State<TunerPage> {
               _frequencia > 0
                   ? '${_frequencia.toStringAsFixed(1)} Hz'
                   : '0 Hz',
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(
+                fontSize: 18,
+              ),
             ),
 
             const SizedBox(height: 35),
@@ -272,7 +336,9 @@ class _TunerPageState extends State<TunerPage> {
                   ? _desativarMicrofone
                   : _ativarMicrofone,
               icon: Icon(
-                _microfoneAtivo ? Icons.stop : Icons.mic,
+                _microfoneAtivo
+                    ? Icons.stop
+                    : Icons.mic,
               ),
               label: Text(
                 _microfoneAtivo
