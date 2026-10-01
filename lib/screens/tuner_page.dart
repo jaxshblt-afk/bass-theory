@@ -23,8 +23,10 @@ class _TunerPageState extends State<TunerPage> {
 
   DateTime? _ultimoSom;
 
-  // Guarda as últimas frequências para deixar a leitura mais estável.
-  final List<double> _historicoFrequencias = [];
+  final List<double> _leituras = [];
+
+  String? _notaEstavel;
+  int _contadorNota = 0;
 
   @override
   void dispose() {
@@ -101,8 +103,7 @@ class _TunerPageState extends State<TunerPage> {
 
     energia = sqrt(energia / samples.length);
 
-    // Sensibilidade aumentada.
-    // Antes era 500.
+    // Mantém boa sensibilidade.
     if (energia < 100) {
       _manterUltimaLeitura();
       return;
@@ -118,25 +119,46 @@ class _TunerPageState extends State<TunerPage> {
       return;
     }
 
-    final resultado = _encontrarNota(frequencia);
-
-    _historicoFrequencias.add(frequencia);
-
-    // Mantém somente as últimas 5 leituras.
-    if (_historicoFrequencias.length > 5) {
-      _historicoFrequencias.removeAt(0);
+    // Aceita somente a região das cordas do contrabaixo.
+    if (frequencia < 35 || frequencia > 115) {
+      return;
     }
 
-    // Média das últimas leituras para reduzir oscilações.
+    final resultado = _encontrarNota(frequencia);
+
+    // Guarda a frequência.
+    _leituras.add(frequencia);
+
+    // Mantém somente as últimas 8 leituras.
+    if (_leituras.length > 8) {
+      _leituras.removeAt(0);
+    }
+
+    // Média das leituras.
     double media = 0;
 
-    for (final valor in _historicoFrequencias) {
+    for (final valor in _leituras) {
       media += valor;
     }
 
-    media /= _historicoFrequencias.length;
+    media /= _leituras.length;
 
-    final resultadoEstavel = _encontrarNota(media);
+    final resultadoMedia = _encontrarNota(media);
+
+    // Filtro de troca de nota.
+    if (_notaEstavel == resultadoMedia.nota) {
+      _contadorNota++;
+    } else {
+      _notaEstavel = resultadoMedia.nota;
+      _contadorNota = 1;
+    }
+
+    // Só troca a nota exibida depois de algumas leituras
+    // consecutivas confirmando a mesma nota.
+    if (_contadorNota < 3) {
+      _ultimoSom = DateTime.now();
+      return;
+    }
 
     _ultimoSom = DateTime.now();
 
@@ -144,8 +166,8 @@ class _TunerPageState extends State<TunerPage> {
 
     setState(() {
       _frequencia = media;
-      _nota = resultadoEstavel.nota;
-      _status = resultadoEstavel.status;
+      _nota = resultadoMedia.nota;
+      _status = resultadoMedia.status;
     });
   }
 
@@ -160,11 +182,11 @@ class _TunerPageState extends State<TunerPage> {
       return;
     }
 
-    final tempoSemSom =
+    final tempo =
         DateTime.now().difference(_ultimoSom!);
 
-    // Mantém a última leitura por até 1,2 segundos.
-    if (tempoSemSom.inMilliseconds > 1200) {
+    // Mantém a última leitura por 1,5 segundos.
+    if (tempo.inMilliseconds > 1500) {
       if (!mounted) return;
 
       setState(() {
@@ -173,7 +195,9 @@ class _TunerPageState extends State<TunerPage> {
         _status = 'Toque uma corda...';
       });
 
-      _historicoFrequencias.clear();
+      _leituras.clear();
+      _notaEstavel = null;
+      _contadorNota = 0;
     }
   }
 
@@ -182,10 +206,13 @@ class _TunerPageState extends State<TunerPage> {
     int sampleRate,
   ) {
     const minFreq = 35.0;
-    const maxFreq = 120.0;
+    const maxFreq = 115.0;
 
-    final minLag = (sampleRate / maxFreq).round();
-    final maxLag = (sampleRate / minFreq).round();
+    final minLag =
+        (sampleRate / maxFreq).round();
+
+    final maxLag =
+        (sampleRate / minFreq).round();
 
     double melhorCorrelacao = 0;
     int melhorLag = 0;
@@ -234,7 +261,9 @@ class _TunerPageState extends State<TunerPage> {
     });
 
     final cents =
-        1200 * log(frequencia / melhorFrequencia) / ln2;
+        1200 *
+        log(frequencia / melhorFrequencia) /
+        ln2;
 
     String status;
 
@@ -254,6 +283,7 @@ class _TunerPageState extends State<TunerPage> {
 
   Future<void> _desativarMicrofone() async {
     await _audioSubscription?.cancel();
+
     _audioSubscription = null;
 
     await _recorder.stop();
@@ -267,7 +297,9 @@ class _TunerPageState extends State<TunerPage> {
       _status = 'Nenhum som detectado';
     });
 
-    _historicoFrequencias.clear();
+    _leituras.clear();
+    _notaEstavel = null;
+    _contadorNota = 0;
     _ultimoSom = null;
   }
 
