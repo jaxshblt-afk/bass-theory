@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
@@ -11,10 +12,15 @@ class TunerPage extends StatefulWidget {
 class _TunerPageState extends State<TunerPage> {
   final AudioRecorder _recorder = AudioRecorder();
 
+  StreamSubscription<List<int>>? _audioSubscription;
+
   bool _microfoneAtivo = false;
+  int _bytesRecebidos = 0;
 
   @override
   void dispose() {
+    _audioSubscription?.cancel();
+    _recorder.stop();
     _recorder.dispose();
     super.dispose();
   }
@@ -23,35 +29,62 @@ class _TunerPageState extends State<TunerPage> {
     final permitido = await _recorder.hasPermission();
 
     if (!permitido) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Permita o acesso ao microfone.'),
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Permita o acesso ao microfone.'),
+        ),
+      );
       return;
     }
 
-    await _recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: 44100,
-        numChannels: 1,
-      ),
-      path: '',
-    );
+    try {
+      final stream = await _recorder.startStream(
+        const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: 44100,
+          numChannels: 1,
+        ),
+      );
 
-    setState(() {
-      _microfoneAtivo = true;
-    });
+      await _audioSubscription?.cancel();
+
+      _audioSubscription = stream.listen((data) {
+        if (!mounted) return;
+
+        setState(() {
+          _bytesRecebidos = data.length;
+        });
+
+        debugPrint('Áudio recebido: ${data.length} bytes');
+      });
+
+      setState(() {
+        _microfoneAtivo = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao iniciar microfone: $e'),
+        ),
+      );
+    }
   }
 
   Future<void> _desativarMicrofone() async {
+    await _audioSubscription?.cancel();
+    _audioSubscription = null;
+
     await _recorder.stop();
+
+    if (!mounted) return;
 
     setState(() {
       _microfoneAtivo = false;
+      _bytesRecebidos = 0;
     });
   }
 
@@ -98,16 +131,20 @@ class _TunerPageState extends State<TunerPage> {
 
             const SizedBox(height: 35),
 
-            const LinearProgressIndicator(
-              value: 0.5,
+            LinearProgressIndicator(
+              value: _microfoneAtivo
+                  ? (_bytesRecebidos > 0 ? 1.0 : 0.2)
+                  : 0.0,
               minHeight: 12,
             ),
 
             const SizedBox(height: 15),
 
-            const Text(
-              '0 Hz',
-              style: TextStyle(fontSize: 18),
+            Text(
+              _microfoneAtivo
+                  ? 'Áudio recebido'
+                  : '0 Hz',
+              style: const TextStyle(fontSize: 18),
             ),
 
             const SizedBox(height: 35),
