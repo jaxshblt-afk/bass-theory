@@ -120,6 +120,28 @@ class HomePage extends StatelessWidget {
         ),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.arrow_forward_ios),
+
+onTap: () {
+  if (title.contains('Descobrir')) {
+    Navigator.pushNamed(context, '/tom');
+  } else if (title.contains('Afinador')) {
+    Navigator.pushNamed(context, '/afinador');
+  } else if (title.contains('Tonalidades')) {
+    Navigator.pushNamed(context, '/tonalidades');
+  } else if (title.contains('Campo')) {
+    Navigator.pushNamed(context, '/campo');
+  } else if (title.contains('Braço')) {
+    Navigator.pushNamed(context, '/braco');
+  } else if (title.contains('Escalas')) {
+    Navigator.pushNamed(context, '/modos');
+  } else if (title.contains('Intervalos')) {
+    Navigator.pushNamed(context, '/intervalos');
+  } else if (title.contains('Ouvido')) {
+    Navigator.pushNamed(context, '/ouvido');
+  } else if (title.contains('Sobre')) {
+    Navigator.pushNamed(context, '/sobre');
+  }
+},
       ),
     );
   }
