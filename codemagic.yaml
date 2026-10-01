@@ -10,7 +10,7 @@ workflows:
       - name: Preparar projeto Android
         script: |
           flutter create --platforms=android .
-          sed -i '/<manifest /a\    <uses-permission android:name="android.permission.RECORD_AUDIO"/>' android/app/src/main/AndroidManifest.xml
+          python3 -c "p='android/app/src/main/AndroidManifest.xml'; s=open(p).read(); s=s.replace('<manifest ', '<manifest '); s=s.replace('>', '>\\n    <uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>', 1); open(p,'w').write(s)"
 
       - name: Instalar dependências
         script: |
