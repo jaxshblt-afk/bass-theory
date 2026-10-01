@@ -8,9 +8,10 @@ class HarmonicFieldPage extends StatefulWidget {
 }
 
 class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
-  String tonalidadeSelecionada = 'C';
+  String tonalidade = 'C';
+  bool menor = false;
 
-  final List<String> tonalidades = [
+  final tonalidades = [
     'C',
     'C#',
     'D',
@@ -25,118 +26,37 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
     'B',
   ];
 
-  final Map<String, List<String>> camposHarmonicos = {
-    'C': [
-      'C',
-      'Dm',
-      'Em',
-      'F',
-      'G',
-      'Am',
-      'B°',
-    ],
-    'C#': [
-      'C#',
-      'D#m',
-      'Fm',
-      'F#',
-      'G#',
-      'A#m',
-      'C°',
-    ],
-    'D': [
-      'D',
-      'Em',
-      'F#m',
-      'G',
-      'A',
-      'Bm',
-      'C#°',
-    ],
-    'Eb': [
-      'Eb',
-      'Fm',
-      'Gm',
-      'Ab',
-      'Bb',
-      'Cm',
-      'D°',
-    ],
-    'E': [
-      'E',
-      'F#m',
-      'G#m',
-      'A',
-      'B',
-      'C#m',
-      'D#°',
-    ],
-    'F': [
-      'F',
-      'Gm',
-      'Am',
-      'Bb',
-      'C',
-      'Dm',
-      'E°',
-    ],
-    'F#': [
-      'F#',
-      'G#m',
-      'A#m',
-      'B',
-      'C#',
-      'D#m',
-      'E#°',
-    ],
-    'G': [
-      'G',
-      'Am',
-      'Bm',
-      'C',
-      'D',
-      'Em',
-      'F#°',
-    ],
-    'Ab': [
-      'Ab',
-      'Bbm',
-      'Cm',
-      'Db',
-      'Eb',
-      'Fm',
-      'G°',
-    ],
-    'A': [
-      'A',
-      'Bm',
-      'C#m',
-      'D',
-      'E',
-      'F#m',
-      'G#°',
-    ],
-    'Bb': [
-      'Bb',
-      'Cm',
-      'Dm',
-      'Eb',
-      'F',
-      'Gm',
-      'A°',
-    ],
-    'B': [
-      'B',
-      'C#m',
-      'D#m',
-      'E',
-      'F#',
-      'G#m',
-      'A#°',
-    ],
+  final camposMaiores = {
+    'C': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°'],
+    'C#': ['C#', 'D#m', 'Fm', 'F#', 'G#', 'A#m', 'C°'],
+    'D': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#°'],
+    'Eb': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'D°'],
+    'E': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#°'],
+    'F': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'E°'],
+    'F#': ['F#', 'G#m', 'A#m', 'B', 'C#', 'D#m', 'E#°'],
+    'G': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#°'],
+    'Ab': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'G°'],
+    'A': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#°'],
+    'Bb': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'A°'],
+    'B': ['B', 'C#m', 'D#m', 'E', 'F#', 'G#m', 'A#°'],
   };
 
-  final List<String> graus = [
+  final camposMenores = {
+    'C': ['Cm', 'D°', 'Eb', 'Fm', 'Gm', 'Ab', 'Bb'],
+    'C#': ['C#m', 'D#°', 'E', 'F#m', 'G#m', 'A', 'B'],
+    'D': ['Dm', 'E°', 'F', 'Gm', 'Am', 'Bb', 'C'],
+    'Eb': ['Ebm', 'F°', 'Gb', 'Abm', 'Bbm', 'Cb', 'Db'],
+    'E': ['Em', 'F#°', 'G', 'Am', 'Bm', 'C', 'D'],
+    'F': ['Fm', 'G°', 'Ab', 'Bbm', 'Cm', 'Db', 'Eb'],
+    'F#': ['F#m', 'G#°', 'A', 'Bm', 'C#m', 'D', 'E'],
+    'G': ['Gm', 'A°', 'Bb', 'Cm', 'Dm', 'Eb', 'F'],
+    'Ab': ['Abm', 'Bb°', 'Cb', 'Dbm', 'Ebm', 'Fb', 'Gb'],
+    'A': ['Am', 'B°', 'C', 'Dm', 'Em', 'F', 'G'],
+    'Bb': ['Bbm', 'C°', 'Db', 'Ebm', 'Fm', 'Gb', 'Ab'],
+    'B': ['Bm', 'C#°', 'D', 'Em', 'F#m', 'G', 'A'],
+  };
+
+  final graus = [
     'I',
     'II',
     'III',
@@ -146,7 +66,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
     'VII',
   ];
 
-  final List<String> nomes = [
+  final nomesMaior = [
     'Tônica',
     'Supertônica',
     'Mediante',
@@ -156,7 +76,17 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
     'Sensível',
   ];
 
-  final List<String> funcoes = [
+  final nomesMenor = [
+    'Tônica',
+    'Supertônica',
+    'Mediante',
+    'Subdominante',
+    'Dominante',
+    'Submediante',
+    'Subtônica',
+  ];
+
+  final funcoesMaior = [
     'Tônica',
     'Pré-dominante',
     'Tônica',
@@ -166,7 +96,17 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
     'Dominante',
   ];
 
-  final List<String> sensacoes = [
+  final funcoesMenor = [
+    'Tônica',
+    'Pré-dominante',
+    'Tônica',
+    'Subdominante',
+    'Dominante',
+    'Submediante',
+    'Subtônica',
+  ];
+
+  final sensacoesMaior = [
     'Repouso',
     'Preparação',
     'Cor',
@@ -176,9 +116,25 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
     'Forte tensão',
   ];
 
+  final sensacoesMenor = [
+    'Repouso',
+    'Tensão',
+    'Cor',
+    'Movimento',
+    'Tensão',
+    'Suavidade',
+    'Movimento',
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final acordes = camposHarmonicos[tonalidadeSelecionada]!;
+    final acordes = menor
+        ? camposMenores[tonalidade]!
+        : camposMaiores[tonalidade]!;
+
+    final nomes = menor ? nomesMenor : nomesMaior;
+    final funcoes = menor ? funcoesMenor : funcoesMaior;
+    final sensacoes = menor ? sensacoesMenor : sensacoesMaior;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,7 +144,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
-            'CAMPO HARMÔNICO MAIOR',
+            'CAMPO HARMÔNICO',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -198,10 +154,10 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
           const SizedBox(height: 8),
 
           const Text(
-            'Escolha uma tonalidade para visualizar seus acordes.',
+            'Escolha a tonalidade e alterne entre maior e menor.',
             style: TextStyle(
-              color: Colors.white70,
               fontSize: 16,
+              color: Colors.white70,
             ),
           ),
 
@@ -224,7 +180,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                   const SizedBox(height: 10),
 
                   DropdownButtonFormField<String>(
-                    value: tonalidadeSelecionada,
+                    value: tonalidade,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.music_note),
@@ -233,10 +189,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                       return DropdownMenuItem(
                         value: tom,
                         child: Text(
-                          '$tom maior',
-                          style: const TextStyle(
-                            fontSize: 17,
-                          ),
+                          '$tom ${menor ? 'menor' : 'maior'}',
                         ),
                       );
                     }).toList(),
@@ -244,7 +197,40 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                       if (valor == null) return;
 
                       setState(() {
-                        tonalidadeSelecionada = valor;
+                        tonalidade = valor;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    'Tipo',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment<bool>(
+                        value: false,
+                        label: Text('Maior'),
+                        icon: Icon(Icons.wb_sunny),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        label: Text('Menor'),
+                        icon: Icon(Icons.nightlight_round),
+                      ),
+                    ],
+                    selected: {menor},
+                    onSelectionChanged: (selection) {
+                      setState(() {
+                        menor = selection.first;
                       });
                     },
                   ),
@@ -260,9 +246,9 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     'Campo Harmônico de',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
                     ),
@@ -271,7 +257,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                   const SizedBox(height: 5),
 
                   Text(
-                    '$tonalidadeSelecionada maior',
+                    '$tonalidade ${menor ? 'menor' : 'maior'}',
                     style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -297,8 +283,6 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
           const SizedBox(height: 20),
 
           ...List.generate(7, (index) {
-            final acorde = acordes[index];
-
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
@@ -313,16 +297,14 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                 title: Row(
                   children: [
                     Text(
-                      acorde,
+                      acordes[index],
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: Text(
                         nomes[index],
@@ -336,7 +318,7 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    'Função: ${funcoes[index]}  •  ${sensacoes[index]}',
+                    'Função: ${funcoes[index]} • ${sensacoes[index]}',
                   ),
                 ),
               ),
@@ -352,27 +334,31 @@ class _HarmonicFieldPageState extends State<HarmonicFieldPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '📚 Fórmula do campo maior',
+                    '📚 Fórmula',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 19,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  const Text(
-                    'I  •  II  •  III  •  IV  •  V  •  VI  •  VII',
-                    style: TextStyle(
-                      fontSize: 17,
                     ),
                   ),
 
                   const SizedBox(height: 10),
 
-                  const Text(
-                    'Maior  •  menor  •  menor  •  Maior  •  Maior  •  menor  •  diminuto',
-                    style: TextStyle(
+                  Text(
+                    menor
+                        ? 'Menor natural: I • II° • III • IV • V • VI • VII'
+                        : 'Maior: I • II • III • IV • V • VI • VII',
+                    style: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    menor
+                        ? 'menor • diminuto • maior • menor • menor • maior • maior'
+                        : 'maior • menor • menor • maior • maior • menor • diminuto',
+                    style: const TextStyle(
                       color: Colors.white70,
                     ),
                   ),
