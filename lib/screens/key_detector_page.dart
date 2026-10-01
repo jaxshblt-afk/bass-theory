@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
@@ -14,9 +13,7 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
   final AudioRecorder _recorder = AudioRecorder();
 
   bool _microfoneAtivo = false;
-  String _nota = '—';
-  double _frequencia = 0;
-  String _confianca = '—';
+  String _status = 'Microfone desligado';
 
   StreamSubscription<Amplitude>? _amplitudeSubscription;
 
@@ -25,14 +22,6 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
     _amplitudeSubscription?.cancel();
     _recorder.dispose();
     super.dispose();
-  }
-
-  Future<void> _alternarMicrofone() async {
-    if (_microfoneAtivo) {
-      await _pararMicrofone();
-    } else {
-      await _iniciarMicrofone();
-    }
   }
 
   Future<void> _iniciarMicrofone() async {
@@ -46,43 +35,53 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
           content: Text('Permita o acesso ao microfone.'),
         ),
       );
-
       return;
     }
 
-    await _recorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: 44100,
-        numChannels: 1,
-      ),
-      path: '',
-    );
+    try {
+      await _recorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: 44100,
+          numChannels: 1,
+        ),
+        path: 'key_detector.wav',
+      );
 
-    _amplitudeSubscription =
-        _recorder.onAmplitudeChanged(
-          const Duration(milliseconds: 250),
-        ).listen((amplitude) {
-          if (!mounted) return;
+      _amplitudeSubscription = _recorder
+          .onAmplitudeChanged(
+            const Duration(milliseconds: 200),
+          )
+          .listen((amplitude) {
+        if (!mounted) return;
 
-          final db = amplitude.current;
-
-          setState(() {
-            _microfoneAtivo = true;
-
-            if (db > -45) {
-              _confianca = 'Boa';
-            } else if (db > -60) {
-              _confianca = 'Média';
-            } else {
-              _confianca = 'Baixa';
-            }
-          });
+        setState(() {
+          _status = amplitude.current > -50
+              ? 'Microfone ouvindo 🎤'
+              : 'Aguardando você cantar...';
         });
+      });
 
-    setState(() {
-      _microfoneAtivo = true;
-    });
+      if (!mounted) return;
+
+      setState(() {
+        _microfoneAtivo = true;
+        _status = 'Microfone ouvindo 🎤';
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _microfoneAtivo = false;
+        _status = 'Erro ao iniciar o microfone';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: $e'),
+        ),
+      );
+    }
   }
 
   Future<void> _pararMicrofone() async {
@@ -95,36 +94,16 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
 
     setState(() {
       _microfoneAtivo = false;
-      _nota = '—';
-      _frequencia = 0;
-      _confianca = '—';
+      _status = 'Microfone desligado';
     });
   }
 
-  String _notaPorFrequencia(double frequencia) {
-    if (frequencia <= 0) return '—';
-
-    const nomes = [
-      'C',
-      'C#',
-      'D',
-      'D#',
-      'E',
-      'F',
-      'F#',
-      'G',
-      'G#',
-      'A',
-      'A#',
-      'B',
-    ];
-
-    final numeroMidi =
-        69 + 12 * (log(frequencia / 440) / log(2));
-
-    final indice = numeroMidi.round() % 12;
-
-    return nomes[indice];
+  Future<void> _alternarMicrofone() async {
+    if (_microfoneAtivo) {
+      await _pararMicrofone();
+    } else {
+      await _iniciarMicrofone();
+    }
   }
 
   @override
@@ -160,12 +139,10 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
           const SizedBox(height: 12),
 
           Text(
-            _microfoneAtivo
-                ? '🎤 Ouvindo... cante uma nota da música.'
-                : 'Cante uma música a capella para analisar.',
+            _status,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               color: Colors.white70,
             ),
           ),
@@ -175,9 +152,7 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
           ElevatedButton.icon(
             onPressed: _alternarMicrofone,
             icon: Icon(
-              _microfoneAtivo
-                  ? Icons.stop
-                  : Icons.mic,
+              _microfoneAtivo ? Icons.stop : Icons.mic,
             ),
             label: Text(
               _microfoneAtivo
@@ -190,10 +165,10 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
 
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(20),
               child: Column(
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     'Resultado da análise',
                     style: TextStyle(
                       fontSize: 19,
@@ -201,44 +176,36 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   Text(
-                    _nota,
-                    style: const TextStyle(
+                    '—',
+                    style: TextStyle(
                       fontSize: 55,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueAccent,
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
 
                   Text(
-                    'Frequência: ${_frequencia.toStringAsFixed(1)} Hz',
-                    style: const TextStyle(
-                      fontSize: 17,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Confiança: $_confianca',
-                    style: const TextStyle(
-                      fontSize: 17,
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  const Text(
                     'Tom provável: —',
                     style: TextStyle(fontSize: 18),
                   ),
 
-                  const Text(
+                  Text(
+                    'Tônica: —',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  Text(
                     'Maior / menor: —',
+                    style: TextStyle(fontSize: 18),
+                  ),
+
+                  Text(
+                    'Confiança: —',
                     style: TextStyle(fontSize: 18),
                   ),
                 ],
@@ -249,7 +216,7 @@ class _KeyDetectorPageState extends State<KeyDetectorPage> {
           const SizedBox(height: 20),
 
           const Text(
-            '💡 Dica: cante notas longas e claras para melhorar a análise.',
+            '💡 Cante uma nota longa e clara para ajudar na análise.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white54,
