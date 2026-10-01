@@ -1,7 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:record/record.dart';
 
-class TunerPage extends StatelessWidget {
+class TunerPage extends StatefulWidget {
   const TunerPage({super.key});
+
+  @override
+  State<TunerPage> createState() => _TunerPageState();
+}
+
+class _TunerPageState extends State<TunerPage> {
+  final AudioRecorder _recorder = AudioRecorder();
+
+  bool _microfoneAtivo = false;
+
+  @override
+  void dispose() {
+    _recorder.dispose();
+    super.dispose();
+  }
+
+  Future<void> _ativarMicrofone() async {
+    final permitido = await _recorder.hasPermission();
+
+    if (!permitido) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Permita o acesso ao microfone.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    await _recorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        sampleRate: 44100,
+        numChannels: 1,
+      ),
+      path: '',
+    );
+
+    setState(() {
+      _microfoneAtivo = true;
+    });
+  }
+
+  Future<void> _desativarMicrofone() async {
+    await _recorder.stop();
+
+    setState(() {
+      _microfoneAtivo = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,18 +77,20 @@ class TunerPage extends StatelessWidget {
 
             const SizedBox(height: 35),
 
-            const Text(
-              '—',
-              style: TextStyle(
+            Text(
+              _microfoneAtivo ? '🎤' : '—',
+              style: const TextStyle(
                 fontSize: 80,
                 fontWeight: FontWeight.bold,
                 color: Colors.blueAccent,
               ),
             ),
 
-            const Text(
-              'Nenhum som detectado',
-              style: TextStyle(
+            Text(
+              _microfoneAtivo
+                  ? 'Microfone ativo'
+                  : 'Nenhum som detectado',
+              style: const TextStyle(
                 fontSize: 18,
                 color: Colors.white70,
               ),
@@ -59,9 +113,17 @@ class TunerPage extends StatelessWidget {
             const SizedBox(height: 35),
 
             ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.mic),
-              label: const Text('ATIVAR MICROFONE'),
+              onPressed: _microfoneAtivo
+                  ? _desativarMicrofone
+                  : _ativarMicrofone,
+              icon: Icon(
+                _microfoneAtivo ? Icons.stop : Icons.mic,
+              ),
+              label: Text(
+                _microfoneAtivo
+                    ? 'DESATIVAR MICROFONE'
+                    : 'ATIVAR MICROFONE',
+              ),
             ),
 
             const SizedBox(height: 30),
