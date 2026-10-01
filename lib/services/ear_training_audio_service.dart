@@ -46,14 +46,15 @@ class EarTrainingAudioService {
 
     final numeroNota = notas[nota] ?? 0;
 
-    final midi =
-        (oitava + 1) * 12 + numeroNota;
+    final midi = (oitava + 1) * 12 + numeroNota;
 
-    return 440 *
-        pow(
-          2,
-          (midi - 69) / 12,
-        );
+    return (
+      440.0 *
+      pow(
+        2.0,
+        (midi - 69) / 12.0,
+      )
+    ).toDouble();
   }
 
   Uint8List _gerarWav({
@@ -72,8 +73,7 @@ class EarTrainingAudioService {
     for (int i = 0; i < quantidadeSamples; i++) {
       final tempo = i / sampleRate;
 
-      final envelope =
-          _envelope(
+      final envelope = _envelope(
         i,
         quantidadeSamples,
       );
@@ -85,8 +85,7 @@ class EarTrainingAudioService {
           0.45 *
           envelope;
 
-      final sample =
-          (valor * 32767).round();
+      final sample = (valor * 32767).round();
 
       dados.add(
         Uint8List(2)
@@ -171,8 +170,7 @@ class EarTrainingAudioService {
     const ataque = 0.05;
     const finalizacao = 0.15;
 
-    final progresso =
-        indice / total;
+    final progresso = indice / total;
 
     if (progresso < ataque) {
       return progresso / ataque;
