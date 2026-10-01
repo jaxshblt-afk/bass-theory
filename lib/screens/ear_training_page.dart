@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/ear_training_service.dart';
+import '../services/ear_training_audio_service.dart';
 
 class EarTrainingPage extends StatefulWidget {
   const EarTrainingPage({super.key});
@@ -15,13 +16,19 @@ class _EarTrainingPageState
   final EarTrainingService _service =
       EarTrainingService();
 
+  final EarTrainingAudioService _audioService =
+      EarTrainingAudioService();
+
   late EarTrainingQuestion _pergunta;
 
   int _acertos = 0;
   int _erros = 0;
 
-  String _resultado = 'Escolha a nota que você ouviu.';
+  String _resultado =
+      'Escolha a nota que você ouviu.';
+
   bool _respondido = false;
+  bool _tocando = false;
 
   @override
   void initState() {
@@ -38,6 +45,28 @@ class _EarTrainingPageState
     });
   }
 
+  Future<void> _ouvirNota() async {
+    if (_tocando) return;
+
+    setState(() {
+      _tocando = true;
+    });
+
+    try {
+      await _audioService.tocarNota(
+        nota: _pergunta.nota,
+        oitava: 3,
+        duracaoMs: 1200,
+      );
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _tocando = false;
+      });
+    }
+  }
+
   void _responder(String resposta) {
     if (_respondido) return;
 
@@ -52,14 +81,22 @@ class _EarTrainingPageState
 
       if (acertou) {
         _acertos++;
+
         _resultado =
             '✅ Acertou! A nota era ${_pergunta.nota}.';
       } else {
         _erros++;
+
         _resultado =
             '❌ Errou! A nota era ${_pergunta.nota}.';
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _audioService.dispose();
+    super.dispose();
   }
 
   @override
@@ -118,13 +155,22 @@ class _EarTrainingPageState
 
                   const SizedBox(height: 20),
 
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.volume_up,
-                    ),
-                    label: const Text(
-                      'OUVIR NOTA',
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          _tocando ? null : _ouvirNota,
+                      icon: Icon(
+                        _tocando
+                            ? Icons.graphic_eq
+                            : Icons.volume_up,
+                      ),
+                      label: Text(
+                        _tocando
+                            ? 'TOCANDO...'
+                            : 'OUVIR NOTA',
+                      ),
                     ),
                   ),
                 ],
@@ -144,9 +190,12 @@ class _EarTrainingPageState
                 child: SizedBox(
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _responder(opcao);
-                    },
+                    onPressed:
+                        _respondido
+                            ? null
+                            : () {
+                                _responder(opcao);
+                              },
                     child: Text(
                       opcao,
                       style: const TextStyle(
