@@ -219,4 +219,12 @@ class KeyDetectorService {
     return '—';
   }
 
-  void
+  void limpar() {
+    for (final nota in pontuacao.keys) {
+      pontuacao[nota] = 0;
+    }
+
+    ultimaNota = null;
+    contadorNota = 0;
+  }
+}
