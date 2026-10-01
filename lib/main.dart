@@ -11,48 +11,23 @@ import 'screens/intervals_page.dart';
 import 'screens/ear_training_page.dart';
 import 'screens/about_page.dart';
 
-void main() {
-  runApp(const BassTheoryApp());
-}
+void main() => runApp(
+  MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: 'Bass Theory',
+    theme: ThemeData.dark(),
 
-class BassTheoryApp extends StatelessWidget {
-  const BassTheoryApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-
-      title: 'Bass Theory',
-
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        useMaterial3: true,
-      ),
-
-      initialRoute: '/',
-
-      routes: {
-        '/': (context) => const HomePage(),
-
-        '/tom': (context) => const KeyDetectorPage(),
-
-        '/afinador': (context) => const TunerPage(),
-
-        '/tonalidades': (context) => const KeysPage(),
-
-        '/campo': (context) => const HarmonicFieldPage(),
-
-        '/braco': (context) => const FretboardPage(),
-
-        '/modos': (context) => const ModesPage(),
-
-        '/intervalos': (context) => const IntervalsPage(),
-
-        '/ouvido': (context) => const EarTrainingPage(),
-
-        '/sobre': (context) => const AboutPage(),
-      },
-    );
-  }
-}
+    routes: {
+      '/': (_) => const HomePage(),
+      '/tom': (_) => const KeyDetectorPage(),
+      '/afinador': (_) => const TunerPage(),
+      '/tonalidades': (_) => const KeysPage(),
+      '/campo': (_) => const HarmonicFieldPage(),
+      '/braco': (_) => const FretboardPage(),
+      '/modos': (_) => const ModesPage(),
+      '/intervalos': (_) => const IntervalsPage(),
+      '/ouvido': (_) => const EarTrainingPage(),
+      '/sobre': (_) => const AboutPage(),
+    },
+  ),
+);
