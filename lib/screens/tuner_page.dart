@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
@@ -18,6 +19,8 @@ class _TunerPageState extends State<TunerPage> {
   bool _microfoneAtivo = false;
 
   double _frequencia = 0;
+  double _cents = 0;
+
   String _nota = '—';
   String _status = 'Nenhum som detectado';
 
@@ -47,6 +50,7 @@ class _TunerPageState extends State<TunerPage> {
           content: Text('Permita o acesso ao microfone.'),
         ),
       );
+
       return;
     }
 
@@ -103,7 +107,6 @@ class _TunerPageState extends State<TunerPage> {
 
     energia = sqrt(energia / samples.length);
 
-    // Mantém boa sensibilidade.
     if (energia < 100) {
       _manterUltimaLeitura();
       return;
@@ -119,22 +122,18 @@ class _TunerPageState extends State<TunerPage> {
       return;
     }
 
-    // Aceita somente a região das cordas do contrabaixo.
     if (frequencia < 35 || frequencia > 115) {
       return;
     }
 
     final resultado = _encontrarNota(frequencia);
 
-    // Guarda a frequência.
     _leituras.add(frequencia);
 
-    // Mantém somente as últimas 8 leituras.
     if (_leituras.length > 8) {
       _leituras.removeAt(0);
     }
 
-    // Média das leituras.
     double media = 0;
 
     for (final valor in _leituras) {
@@ -145,7 +144,6 @@ class _TunerPageState extends State<TunerPage> {
 
     final resultadoMedia = _encontrarNota(media);
 
-    // Filtro de troca de nota.
     if (_notaEstavel == resultadoMedia.nota) {
       _contadorNota++;
     } else {
@@ -153,8 +151,6 @@ class _TunerPageState extends State<TunerPage> {
       _contadorNota = 1;
     }
 
-    // Só troca a nota exibida depois de algumas leituras
-    // consecutivas confirmando a mesma nota.
     if (_contadorNota < 3) {
       _ultimoSom = DateTime.now();
       return;
@@ -167,6 +163,7 @@ class _TunerPageState extends State<TunerPage> {
     setState(() {
       _frequencia = media;
       _nota = resultadoMedia.nota;
+      _cents = resultadoMedia.cents;
       _status = resultadoMedia.status;
     });
   }
@@ -185,12 +182,12 @@ class _TunerPageState extends State<TunerPage> {
     final tempo =
         DateTime.now().difference(_ultimoSom!);
 
-    // Mantém a última leitura por 1,5 segundos.
     if (tempo.inMilliseconds > 1500) {
       if (!mounted) return;
 
       setState(() {
         _frequencia = 0;
+        _cents = 0;
         _nota = '—';
         _status = 'Toque uma corda...';
       });
@@ -278,6 +275,174 @@ class _TunerPageState extends State<TunerPage> {
     return _Resultado(
       nota: melhorNota,
       status: status,
+      cents: cents,
+    );
+  }
+
+  Color _corIndicador() {
+    if (_frequencia <= 0) {
+      return Colors.white24;
+    }
+
+    if (_cents.abs() <= 5) {
+      return Colors.greenAccent;
+    }
+
+    if (_cents.abs() <= 20) {
+      return Colors.orangeAccent;
+    }
+
+    return Colors.redAccent;
+  }
+
+  double _posicaoIndicador() {
+    if (_frequencia <= 0) {
+      return 0;
+    }
+
+    final limitado =
+        _cents.clamp(-50.0, 50.0);
+
+    return limitado / 50;
+  }
+
+  Widget _construirIndicador() {
+    final cor = _corIndicador();
+    final posicao = _posicaoIndicador();
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 55,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final centro =
+                  constraints.maxWidth / 2;
+
+              final deslocamento =
+                  posicao *
+                  (constraints.maxWidth / 2 - 20);
+
+              final esquerda =
+                  (centro + deslocamento - 3)
+                      .clamp(
+                    0.0,
+                    constraints.maxWidth - 6,
+                  );
+
+              return Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 25,
+                    child: Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(10),
+                        gradient:
+                            const LinearGradient(
+                          colors: [
+                            Colors.redAccent,
+                            Colors.orangeAccent,
+                            Colors.greenAccent,
+                            Colors.orangeAccent,
+                            Colors.redAccent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    left: centro - 2,
+                    top: 15,
+                    child: Container(
+                      width: 4,
+                      height: 26,
+                      decoration:
+                          BoxDecoration(
+                        color: Colors.greenAccent,
+                        borderRadius:
+                            BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+
+                  AnimatedPositioned(
+                    duration:
+                        const Duration(
+                      milliseconds: 120,
+                    ),
+                    curve: Curves.easeOut,
+                    left: esquerda,
+                    top: 8,
+                    child: Container(
+                      width: 6,
+                      height: 40,
+                      decoration:
+                          BoxDecoration(
+                        color: cor,
+                        borderRadius:
+                            BorderRadius.circular(5),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                cor.withOpacity(0.5),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+
+        const Row(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'GRAVE',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'AFINADO',
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'AGUDO',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        Text(
+          _frequencia > 0
+              ? '${_cents >= 0 ? '+' : ''}${_cents.toStringAsFixed(1)} cents'
+              : '— cents',
+          style: TextStyle(
+            fontSize: 16,
+            color: cor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -293,6 +458,7 @@ class _TunerPageState extends State<TunerPage> {
     setState(() {
       _microfoneAtivo = false;
       _frequencia = 0;
+      _cents = 0;
       _nota = '—';
       _status = 'Nenhum som detectado';
     });
@@ -323,14 +489,14 @@ class _TunerPageState extends State<TunerPage> {
               ),
             ),
 
-            const SizedBox(height: 35),
+            const SizedBox(height: 30),
 
             Text(
               _nota,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 80,
                 fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
+                color: _corIndicador(),
               ),
             ),
 
@@ -343,14 +509,11 @@ class _TunerPageState extends State<TunerPage> {
               ),
             ),
 
-            const SizedBox(height: 35),
+            const SizedBox(height: 25),
 
-            LinearProgressIndicator(
-              value: _microfoneAtivo ? 0.8 : 0,
-              minHeight: 12,
-            ),
+            _construirIndicador(),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
 
             Text(
               _frequencia > 0
@@ -361,7 +524,7 @@ class _TunerPageState extends State<TunerPage> {
               ),
             ),
 
-            const SizedBox(height: 35),
+            const SizedBox(height: 30),
 
             ElevatedButton.icon(
               onPressed: _microfoneAtivo
@@ -407,9 +570,11 @@ class _TunerPageState extends State<TunerPage> {
 class _Resultado {
   final String nota;
   final String status;
+  final double cents;
 
   _Resultado({
     required this.nota,
     required this.status,
+    required this.cents,
   });
 }
