@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
@@ -15,7 +16,9 @@ class _TunerPageState extends State<TunerPage> {
   StreamSubscription<List<int>>? _audioSubscription;
 
   bool _microfoneAtivo = false;
-  int _bytesRecebidos = 0;
+  double _frequencia = 0;
+  String _nota = '—';
+  String _status = 'Nenhum som detectado';
 
   @override
   void dispose() {
@@ -50,18 +53,11 @@ class _TunerPageState extends State<TunerPage> {
 
       await _audioSubscription?.cancel();
 
-      _audioSubscription = stream.listen((data) {
-        if (!mounted) return;
-
-        setState(() {
-          _bytesRecebidos = data.length;
-        });
-
-        debugPrint('Áudio recebido: ${data.length} bytes');
-      });
+      _audioSubscription = stream.listen(_analisarAudio);
 
       setState(() {
         _microfoneAtivo = true;
+        _status = 'Ouvindo...';
       });
     } catch (e) {
       if (!mounted) return;
@@ -74,6 +70,129 @@ class _TunerPageState extends State<TunerPage> {
     }
   }
 
+  void _analisarAudio(List<int> dados) {
+    if (dados.length < 2000) return;
+
+    final samples = <double>[];
+
+    for (int i = 0; i + 1 < dados.length; i += 2) {
+      int valor = dados[i] | (dados[i + 1] << 8);
+
+      if (valor > 32767) {
+        valor -= 65536;
+      }
+
+      samples.add(valor.toDouble());
+    }
+
+    if (samples.length < 1000) return;
+
+    double energia = 0;
+
+    for (final sample in samples) {
+      energia += sample * sample;
+    }
+
+    energia = sqrt(energia / samples.length);
+
+    if (energia < 500) {
+      if (mounted) {
+        setState(() {
+          _status = 'Toque uma corda...';
+        });
+      }
+      return;
+    }
+
+    final frequencia = _detectarFrequencia(samples, 44100);
+
+    if (frequencia <= 0) return;
+
+    final resultado = _encontrarNota(frequencia);
+
+    if (!mounted) return;
+
+    setState(() {
+      _frequencia = frequencia;
+      _nota = resultado.nota;
+      _status = resultado.status;
+    });
+  }
+
+  double _detectarFrequencia(
+    List<double> samples,
+    int sampleRate,
+  ) {
+    final minFreq = 35.0;
+    final maxFreq = 120.0;
+
+    final minLag = (sampleRate / maxFreq).round();
+    final maxLag = (sampleRate / minFreq).round();
+
+    double melhorCorrelacao = 0;
+    int melhorLag = 0;
+
+    for (int lag = minLag; lag <= maxLag; lag++) {
+      double soma = 0;
+
+      final limite = samples.length - lag;
+
+      for (int i = 0; i < limite; i++) {
+        soma += samples[i] * samples[i + lag];
+      }
+
+      if (soma > melhorCorrelacao) {
+        melhorCorrelacao = soma;
+        melhorLag = lag;
+      }
+    }
+
+    if (melhorLag == 0) return 0;
+
+    return sampleRate / melhorLag;
+  }
+
+  _Resultado _encontrarNota(double frequencia) {
+    const notas = {
+      'E': 41.20,
+      'A': 55.00,
+      'D': 73.42,
+      'G': 98.00,
+    };
+
+    String melhorNota = '—';
+    double melhorFrequencia = 0;
+    double menorDiferenca = double.infinity;
+
+    notas.forEach((nome, alvo) {
+      final diferenca = (frequencia - alvo).abs();
+
+      if (diferenca < menorDiferenca) {
+        menorDiferenca = diferenca;
+        melhorNota = nome;
+        melhorFrequencia = alvo;
+      }
+    });
+
+    final cents =
+        1200 * log(frequencia / melhorFrequencia) / ln2;
+
+    String status;
+
+    if (cents.abs() <= 5) {
+      status = 'AFINADO';
+    } else if (cents < 0) {
+      status = 'GRAVE — aumente a tensão';
+    } else {
+      status = 'AGUDO — diminua a tensão';
+    }
+
+    return _Resultado(
+      nota: melhorNota,
+      status: status,
+    );
+  }
+
   Future<void> _desativarMicrofone() async {
     await _audioSubscription?.cancel();
     _audioSubscription = null;
@@ -84,7 +203,9 @@ class _TunerPageState extends State<TunerPage> {
 
     setState(() {
       _microfoneAtivo = false;
-      _bytesRecebidos = 0;
+      _frequencia = 0;
+      _nota = '—';
+      _status = 'Nenhum som detectado';
     });
   }
 
@@ -111,7 +232,7 @@ class _TunerPageState extends State<TunerPage> {
             const SizedBox(height: 35),
 
             Text(
-              _microfoneAtivo ? '🎤' : '—',
+              _nota,
               style: const TextStyle(
                 fontSize: 80,
                 fontWeight: FontWeight.bold,
@@ -120,9 +241,8 @@ class _TunerPageState extends State<TunerPage> {
             ),
 
             Text(
-              _microfoneAtivo
-                  ? 'Microfone ativo'
-                  : 'Nenhum som detectado',
+              _status,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 18,
                 color: Colors.white70,
@@ -132,17 +252,15 @@ class _TunerPageState extends State<TunerPage> {
             const SizedBox(height: 35),
 
             LinearProgressIndicator(
-              value: _microfoneAtivo
-                  ? (_bytesRecebidos > 0 ? 1.0 : 0.2)
-                  : 0.0,
+              value: _microfoneAtivo ? 0.8 : 0,
               minHeight: 12,
             ),
 
             const SizedBox(height: 15),
 
             Text(
-              _microfoneAtivo
-                  ? 'Áudio recebido'
+              _frequencia > 0
+                  ? '${_frequencia.toStringAsFixed(1)} Hz'
                   : '0 Hz',
               style: const TextStyle(fontSize: 18),
             ),
@@ -186,4 +304,14 @@ class _TunerPageState extends State<TunerPage> {
       ),
     );
   }
+}
+
+class _Resultado {
+  final String nota;
+  final String status;
+
+  _Resultado({
+    required this.nota,
+    required this.status,
+  });
 }
