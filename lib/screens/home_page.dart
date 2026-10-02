@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
-            'Bass Theory 3.0',
+            'DC Bass Theory',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
