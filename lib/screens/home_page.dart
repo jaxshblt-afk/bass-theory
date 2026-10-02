@@ -8,7 +8,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'BASS THEORY',
+          'DC BASS THEORY',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -84,18 +84,27 @@ class HomePage extends StatelessWidget {
             'Desenvolva sua percepção musical.',
           ),
 
+          // NOVA OPÇÃO
+          _featureCard(
+            context,
+            '📚 Outros',
+            'Tétrades, escalas, acordes, linhas de baixo, ritmo e técnicas.',
+          ),
+
           _featureCard(
             context,
             'ℹ️ Sobre o aplicativo',
-            'Bass Theory versão 3.0.0',
+            'DC Bass Theory versão 3.0.0',
           ),
 
           const SizedBox(height: 25),
 
           const Center(
             child: Text(
-              'Bass Theory 3.0.0',
-              style: TextStyle(color: Colors.white38),
+              'DC Bass Theory 3.0.0',
+              style: TextStyle(
+                color: Colors.white38,
+              ),
             ),
           ),
         ],
@@ -119,29 +128,32 @@ class HomePage extends StatelessWidget {
           ),
         ),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios),
-
-onTap: () {
-  if (title.contains('Descobrir')) {
-    Navigator.pushNamed(context, '/tom');
-  } else if (title.contains('Afinador')) {
-    Navigator.pushNamed(context, '/afinador');
-  } else if (title.contains('Tonalidades')) {
-    Navigator.pushNamed(context, '/tonalidades');
-  } else if (title.contains('Campo')) {
-    Navigator.pushNamed(context, '/campo');
-  } else if (title.contains('Braço')) {
-    Navigator.pushNamed(context, '/braco');
-  } else if (title.contains('Escalas')) {
-    Navigator.pushNamed(context, '/modos');
-  } else if (title.contains('Intervalos')) {
-    Navigator.pushNamed(context, '/intervalos');
-  } else if (title.contains('Ouvido')) {
-    Navigator.pushNamed(context, '/ouvido');
-  } else if (title.contains('Sobre')) {
-    Navigator.pushNamed(context, '/sobre');
-  }
-},
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+        ),
+        onTap: () {
+          if (title.contains('Descobrir')) {
+            Navigator.pushNamed(context, '/tom');
+          } else if (title.contains('Afinador')) {
+            Navigator.pushNamed(context, '/afinador');
+          } else if (title.contains('Tonalidades')) {
+            Navigator.pushNamed(context, '/tonalidades');
+          } else if (title.contains('Campo')) {
+            Navigator.pushNamed(context, '/campo');
+          } else if (title.contains('Braço')) {
+            Navigator.pushNamed(context, '/braco');
+          } else if (title.contains('Escalas')) {
+            Navigator.pushNamed(context, '/modos');
+          } else if (title.contains('Intervalos')) {
+            Navigator.pushNamed(context, '/intervalos');
+          } else if (title.contains('Ouvido')) {
+            Navigator.pushNamed(context, '/ouvido');
+          } else if (title.contains('Outros')) {
+            Navigator.pushNamed(context, '/outros');
+          } else if (title.contains('Sobre')) {
+            Navigator.pushNamed(context, '/sobre');
+          }
+        },
       ),
     );
   }
