@@ -10,11 +10,12 @@ import 'screens/modes_page.dart';
 import 'screens/intervals_page.dart';
 import 'screens/ear_training_page.dart';
 import 'screens/about_page.dart';
+import 'screens/others_page.dart';
 
 void main() => runApp(
   MaterialApp(
     debugShowCheckedModeBanner: false,
-    title: 'Bass Theory',
+    title: 'DC Bass Theory',
     theme: ThemeData.dark(),
 
     routes: {
@@ -28,6 +29,9 @@ void main() => runApp(
       '/intervalos': (_) => const IntervalsPage(),
       '/ouvido': (_) => const EarTrainingPage(),
       '/sobre': (_) => const AboutPage(),
+
+      // Nova seção
+      '/outros': (_) => const OthersPage(),
     },
   ),
 );
