@@ -36,36 +36,42 @@ class OthersPage extends StatelessWidget {
             context,
             '🎼 Tétrades',
             'Estude acordes de quatro notas.',
+            '/tetrades',
           ),
 
           _botao(
             context,
             '🎸 Escalas para Contrabaixo',
             'Conheça escalas importantes para o baixo.',
+            '/escalas',
           ),
 
           _botao(
             context,
             '🎹 Acordes e Cifras',
             'Aprenda a interpretar acordes e cifras.',
+            '/acordes',
           ),
 
           _botao(
             context,
             '🎵 Construção de Linhas de Baixo',
             'Aprenda a criar linhas de baixo.',
+            '/linhas',
           ),
 
           _botao(
             context,
             '🥁 Ritmo',
             'Estude divisão rítmica e precisão.',
+            '/ritmo',
           ),
 
           _botao(
             context,
             '🤘 Técnicas de Contrabaixo',
             'Conheça as principais técnicas para tocar baixo.',
+            '/tecnicas',
           ),
         ],
       ),
@@ -76,6 +82,7 @@ class OthersPage extends StatelessWidget {
     BuildContext context,
     String titulo,
     String descricao,
+    String rota,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -100,13 +107,7 @@ class OthersPage extends StatelessWidget {
         ),
 
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$titulo em desenvolvimento.',
-              ),
-            ),
-          );
+          Navigator.pushNamed(context, rota);
         },
       ),
     );
