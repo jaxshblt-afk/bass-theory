@@ -79,16 +79,13 @@ class _FretboardPageState extends State<FretboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '🎸 Braço do Contrabaixo',
-        ),
+        title: const Text('🎸 Braço do Contrabaixo'),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'BRAÇO DO CONTRABAIXO',
@@ -123,21 +120,29 @@ class _FretboardPageState extends State<FretboardPage> {
 
   Widget _construirNotaSelecionada() {
     return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              width: 65,
-              height: 65,
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blueAccent,
+                gradient: const LinearGradient(
+                  colors: [
+                    Colors.blueAccent,
+                    Colors.indigoAccent,
+                  ],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blueAccent
-                        .withOpacity(0.4),
-                    blurRadius: 12,
+                    color: Colors.blueAccent.withOpacity(0.45),
+                    blurRadius: 14,
                   ),
                 ],
               ),
@@ -154,29 +159,40 @@ class _FretboardPageState extends State<FretboardPage> {
 
             const SizedBox(width: 16),
 
-            Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Nota selecionada',
-                  style: TextStyle(
-                    color: Colors.white70,
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'NOTA SELECIONADA',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 4),
+                  const SizedBox(height: 5),
 
-                Text(
-                  '$notaSelecionada • '
-                  'Corda $cordaSelecionada • '
-                  'Casa $casaSelecionada',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    notaSelecionada,
+                    style: const TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 3),
+
+                  Text(
+                    'Corda $cordaSelecionada  •  Casa $casaSelecionada',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -185,18 +201,48 @@ class _FretboardPageState extends State<FretboardPage> {
   }
 
   Widget _construirBraco() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Column(
-        children: [
-          _construirCabecalho(),
-
-          const SizedBox(height: 4),
-
-          ...cordas.map(
-            (corda) => _construirCorda(corda),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+            horizontal: 4,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF5A3825),
+                Color(0xFF3A2418),
+                Color(0xFF5A3825),
+              ],
+            ),
+          ),
+          child: Column(
+            children: [
+              _construirCabecalho(),
+
+              const SizedBox(height: 4),
+
+              ...cordas.map(
+                (corda) => _construirCorda(corda),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -206,21 +252,30 @@ class _FretboardPageState extends State<FretboardPage> {
       children: [
         Container(
           width: 45,
-          height: 30,
+          height: 34,
           alignment: Alignment.center,
-          child: const Text(''),
+          child: const Text(
+            '↓',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 18,
+            ),
+          ),
         ),
 
         ...List.generate(
           25,
           (casa) => Container(
             width: 58,
-            height: 30,
+            height: 34,
             alignment: Alignment.center,
             child: Text(
               '$casa',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: casa == 12 || casa == 24
+                    ? Colors.blueAccent
+                    : Colors.white70,
               ),
             ),
           ),
@@ -234,7 +289,7 @@ class _FretboardPageState extends State<FretboardPage> {
       children: [
         Container(
           width: 45,
-          height: 62,
+          height: 64,
           alignment: Alignment.center,
           child: Text(
             corda,
@@ -286,58 +341,74 @@ class _FretboardPageState extends State<FretboardPage> {
       },
       child: Container(
         width: 58,
-        height: 62,
+        height: 64,
         decoration: BoxDecoration(
-          color: selecionada
-              ? Colors.blueAccent.withOpacity(0.45)
-              : const Color(0xFF3A2A20),
-
+          gradient: selecionada
+              ? const LinearGradient(
+                  colors: [
+                    Colors.blueAccent,
+                    Colors.indigoAccent,
+                  ],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF68432B),
+                    Color(0xFF422719),
+                  ],
+                ),
           border: Border(
             right: BorderSide(
-              color: Colors.white54,
-              width: casa == 0 ? 3 : 1,
+              color: Colors.white70,
+              width: casa == 0 ? 4 : 2,
             ),
             bottom: const BorderSide(
-              color: Colors.white12,
+              color: Colors.black54,
+              width: 1,
             ),
           ),
         ),
-
         child: Stack(
           alignment: Alignment.center,
           children: [
-            if (ehMarcador(casa) &&
-                casa != 0)
+            if (ehMarcador(casa) && casa != 0)
               _construirMarcador(casa),
 
             Center(
               child: Container(
-                width: selecionada ? 40 : 32,
-                height: selecionada ? 40 : 32,
+                width: selecionada ? 42 : 34,
+                height: selecionada ? 42 : 34,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-
                   color: selecionada
                       ? Colors.blueAccent
-                      : Colors.transparent,
-
-                  border: ehTonica &&
-                          !selecionada
+                      : ehTonica
+                          ? Colors.blueAccent
+                              .withOpacity(0.20)
+                          : Colors.transparent,
+                  border: ehTonica && !selecionada
                       ? Border.all(
                           color: Colors.blueAccent,
                           width: 2,
                         )
                       : null,
+                  boxShadow: selecionada
+                      ? [
+                          BoxShadow(
+                            color: Colors.blueAccent
+                                .withOpacity(0.55),
+                            blurRadius: 10,
+                          ),
+                        ]
+                      : null,
                 ),
-
                 child: Center(
                   child: Text(
                     nota,
                     style: TextStyle(
-                      fontSize:
-                          selecionada ? 16 : 14,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontSize: selecionada ? 16 : 14,
+                      fontWeight: FontWeight.bold,
                       color: selecionada
                           ? Colors.white
                           : Colors.white70,
@@ -348,13 +419,31 @@ class _FretboardPageState extends State<FretboardPage> {
             ),
 
             Positioned(
+              left: 0,
+              right: 0,
+              top: 1,
+              child: Container(
+                height: 2,
+                color: Colors.white10,
+              ),
+            ),
+
+            Positioned(
               top: 0,
               bottom: 0,
               right: 2,
               child: Container(
-                width:
-                    _espessuraCorda(corda),
-                color: Colors.white70,
+                width: _espessuraCorda(corda),
+                decoration: BoxDecoration(
+                  color: Colors.white70,
+                  borderRadius: BorderRadius.circular(5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black54,
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -380,11 +469,17 @@ class _FretboardPageState extends State<FretboardPage> {
 
   Widget _bolinhaMarcador() {
     return Container(
-      width: 9,
-      height: 9,
-      decoration: const BoxDecoration(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white38,
+        color: Colors.white54,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black54,
+            blurRadius: 3,
+          ),
+        ],
       ),
     );
   }
