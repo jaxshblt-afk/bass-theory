@@ -34,13 +34,15 @@ class _TetradFretboardPageState
     'B',
   ];
 
+  // Ordem visual do braço: G → D → A → E
   static const List<String> cordas = [
-    'E',
-    'A',
-    'D',
     'G',
+    'D',
+    'A',
+    'E',
   ];
 
+  // Afinação padrão continua a mesma.
   static const Map<String, int> afinacao = {
     'E': 4,
     'A': 9,
@@ -180,7 +182,7 @@ class _TetradFretboardPageState
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white12,
                 ),
