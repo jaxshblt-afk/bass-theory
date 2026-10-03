@@ -23,13 +23,15 @@ class _FretboardPageState extends State<FretboardPage> {
     'B',
   ];
 
+  // Ordem visual do braço: G → D → A → E
   static const List<String> cordas = [
-    'E',
-    'A',
-    'D',
     'G',
+    'D',
+    'A',
+    'E',
   ];
 
+  // Afinação padrão — não foi alterada
   static const Map<String, int> afinacao = {
     'E': 4,
     'A': 9,
@@ -384,8 +386,7 @@ class _FretboardPageState extends State<FretboardPage> {
                   color: selecionada
                       ? Colors.blueAccent
                       : ehTonica
-                          ? Colors.blueAccent
-                              .withOpacity(0.20)
+                          ? Colors.blueAccent.withOpacity(0.20)
                           : Colors.transparent,
                   border: ehTonica && !selecionada
                       ? Border.all(
