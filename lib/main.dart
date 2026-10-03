@@ -12,6 +12,14 @@ import 'screens/ear_training_page.dart';
 import 'screens/about_page.dart';
 import 'screens/others_page.dart';
 
+// Conteúdos da seção Outros
+import 'others/tetrads_page.dart';
+import 'others/bass_scales_page.dart';
+import 'others/chords_page.dart';
+import 'others/bass_lines_page.dart';
+import 'others/rhythm_page.dart';
+import 'others/techniques_page.dart';
+
 void main() => runApp(
   MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -20,18 +28,39 @@ void main() => runApp(
 
     routes: {
       '/': (_) => const HomePage(),
+
       '/tom': (_) => const KeyDetectorPage(),
+
       '/afinador': (_) => const TunerPage(),
+
       '/tonalidades': (_) => const KeysPage(),
+
       '/campo': (_) => const HarmonicFieldPage(),
+
       '/braco': (_) => const FretboardPage(),
+
       '/modos': (_) => const ModesPage(),
+
       '/intervalos': (_) => const IntervalsPage(),
+
       '/ouvido': (_) => const EarTrainingPage(),
+
       '/sobre': (_) => const AboutPage(),
 
-      // Nova seção
+      // Seção Outros
       '/outros': (_) => const OthersPage(),
+
+      '/tetrades': (_) => const TetradsPage(),
+
+      '/escalas': (_) => const BassScalesPage(),
+
+      '/acordes': (_) => const ChordsPage(),
+
+      '/linhas': (_) => const BassLinesPage(),
+
+      '/ritmo': (_) => const RhythmPage(),
+
+      '/tecnicas': (_) => const TechniquesPage(),
     },
   ),
 );
