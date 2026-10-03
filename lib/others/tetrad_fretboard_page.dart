@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class TetradFretboardPage extends StatelessWidget {
+class TetradFretboardPage extends StatefulWidget {
   final String nome;
   final String cifra;
   final List<String> notasTetrade;
@@ -12,6 +12,13 @@ class TetradFretboardPage extends StatelessWidget {
     required this.notasTetrade,
   });
 
+  @override
+  State<TetradFretboardPage> createState() =>
+      _TetradFretboardPageState();
+}
+
+class _TetradFretboardPageState
+    extends State<TetradFretboardPage> {
   static const List<String> notas = [
     'C',
     'C#',
@@ -41,25 +48,41 @@ class TetradFretboardPage extends StatelessWidget {
     'G': 7,
   };
 
+  String? cordaSelecionada;
+  int? casaSelecionada;
+  String? notaSelecionada;
+
   String notaNaCasa(String corda, int casa) {
     final inicio = afinacao[corda]!;
     return notas[(inicio + casa) % 12];
   }
 
   bool fazParteDaTetrade(String nota) {
-    return notasTetrade.contains(nota);
+    return widget.notasTetrade.contains(nota);
   }
 
   bool ehTonica(String nota) {
-    return notasTetrade.isNotEmpty &&
-        nota == notasTetrade.first;
+    return widget.notasTetrade.isNotEmpty &&
+        nota == widget.notasTetrade.first;
+  }
+
+  void selecionarCasa(
+    String corda,
+    int casa,
+    String nota,
+  ) {
+    setState(() {
+      cordaSelecionada = corda;
+      casaSelecionada = casa;
+      notaSelecionada = nota;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('🎸 $cifra'),
+        title: Text('🎸 ${widget.cifra}'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -69,7 +92,7 @@ class TetradFretboardPage extends StatelessWidget {
                 CrossAxisAlignment.start,
             children: [
               Text(
-                nome,
+                widget.nome,
                 style: const TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
@@ -79,7 +102,7 @@ class TetradFretboardPage extends StatelessWidget {
               const SizedBox(height: 6),
 
               Text(
-                cifra,
+                widget.cifra,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -90,14 +113,18 @@ class TetradFretboardPage extends StatelessWidget {
               const SizedBox(height: 15),
 
               Text(
-                'Notas: ${notasTetrade.join(' • ')}',
+                'Notas: ${widget.notasTetrade.join(' • ')}',
                 style: const TextStyle(
                   fontSize: 17,
                   color: Colors.white70,
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
+
+              _construirNotaSelecionada(),
+
+              const SizedBox(height: 15),
 
               Card(
                 child: Padding(
@@ -113,6 +140,11 @@ class TetradFretboardPage extends StatelessWidget {
                         Colors.orangeAccent,
                         'Tétrade',
                       ),
+                      const SizedBox(width: 18),
+                      _legenda(
+                        Colors.white,
+                        'Selecionada',
+                      ),
                     ],
                   ),
                 ),
@@ -125,7 +157,7 @@ class TetradFretboardPage extends StatelessWidget {
               const SizedBox(height: 20),
 
               const Text(
-                'As notas destacadas mostram onde você pode tocar as notas da tétrade no braço.',
+                'As notas destacadas mostram as notas da tétrade no braço. Toque em uma casa para selecioná-la.',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 15,
@@ -133,6 +165,131 @@ class TetradFretboardPage extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _construirNotaSelecionada() {
+    if (notaSelecionada == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white12,
+                ),
+                child: const Center(
+                  child: Text(
+                    '?',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 15),
+
+              const Expanded(
+                child: Text(
+                  'Toque em uma casa do braço',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final tonica = ehTonica(notaSelecionada!);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: tonica
+                    ? Colors.blueAccent
+                    : Colors.orangeAccent,
+                boxShadow: [
+                  BoxShadow(
+                    color: (tonica
+                            ? Colors.blueAccent
+                            : Colors.orangeAccent)
+                        .withOpacity(0.4),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  notaSelecionada!,
+                  style: const TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 15),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Nota selecionada',
+                    style: TextStyle(
+                      color: Colors.white70,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    '$notaSelecionada • '
+                    'Corda $cordaSelecionada • '
+                    'Casa $casaSelecionada',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    tonica
+                        ? 'Tônica da tétrade'
+                        : 'Nota da tétrade',
+                    style: TextStyle(
+                      color: tonica
+                          ? Colors.blueAccent
+                          : Colors.orangeAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -147,9 +304,16 @@ class TetradFretboardPage extends StatelessWidget {
           decoration: BoxDecoration(
             color: cor,
             shape: BoxShape.circle,
+            border: cor == Colors.white
+                ? Border.all(
+                    color: Colors.white54,
+                  )
+                : null,
           ),
         ),
+
         const SizedBox(width: 7),
+
         Text(texto),
       ],
     );
@@ -244,70 +408,121 @@ class TetradFretboardPage extends StatelessWidget {
             final tonica =
                 ehTonica(nota);
 
-            return Container(
-              width: 58,
-              height: 64,
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: Colors.white54,
-                    width: casa == 0 ? 4 : 2,
-                  ),
-                  bottom: const BorderSide(
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (pertence)
-                    Container(
-                      width: tonica ? 42 : 38,
-                      height: tonica ? 42 : 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: tonica
-                            ? Colors.blueAccent
-                            : Colors.orangeAccent,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (tonica
-                                    ? Colors.blueAccent
-                                    : Colors.orangeAccent)
-                                .withOpacity(0.45),
-                            blurRadius: 9,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          nota,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight:
-                                FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
+            final selecionada =
+                corda == cordaSelecionada &&
+                casa == casaSelecionada;
 
-                  Positioned(
-                    right: 2,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: _espessuraCorda(corda),
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
+            return _construirCasa(
+              corda,
+              casa,
+              nota,
+              pertence,
+              tonica,
+              selecionada,
             );
           },
         ),
       ],
+    );
+  }
+
+  Widget _construirCasa(
+    String corda,
+    int casa,
+    String nota,
+    bool pertence,
+    bool tonica,
+    bool selecionada,
+  ) {
+    Color? cor;
+
+    if (selecionada) {
+      cor = Colors.white;
+    } else if (tonica) {
+      cor = Colors.blueAccent;
+    } else if (pertence) {
+      cor = Colors.orangeAccent;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        selecionarCasa(
+          corda,
+          casa,
+          nota,
+        );
+      },
+      child: Container(
+        width: 58,
+        height: 64,
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(
+              color: Colors.white54,
+              width: casa == 0 ? 4 : 2,
+            ),
+            bottom: const BorderSide(
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (cor != null)
+              Container(
+                width: selecionada
+                    ? 44
+                    : tonica
+                        ? 42
+                        : 38,
+                height: selecionada
+                    ? 44
+                    : tonica
+                        ? 42
+                        : 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: cor,
+                  border: selecionada
+                      ? Border.all(
+                          color: Colors.blueAccent,
+                          width: 3,
+                        )
+                      : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color: cor.withOpacity(0.45),
+                      blurRadius: 9,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    nota,
+                    style: TextStyle(
+                      color: selecionada
+                          ? Colors.black
+                          : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+
+            Positioned(
+              right: 2,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: _espessuraCorda(corda),
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
