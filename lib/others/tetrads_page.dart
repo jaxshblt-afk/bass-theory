@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
 
+import 'tetrad_fretboard_page.dart';
+
 class TetradsPage extends StatelessWidget {
   const TetradsPage({super.key});
+
+  void _abrirTetrade(
+    BuildContext context,
+    String nome,
+    String cifra,
+    List<String> notas,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TetradFretboardPage(
+          nome: nome,
+          cifra: cifra,
+          notasTetrade: notas,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +44,8 @@ class TetradsPage extends StatelessWidget {
 
           const Text(
             'Acordes formados por quatro notas. '
-            'Estude a estrutura e a aplicação no contrabaixo.',
+            'Toque em uma tétrade para visualizar '
+            'suas notas no braço do contrabaixo.',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white70,
@@ -38,6 +59,7 @@ class TetradsPage extends StatelessWidget {
             'Maior com 7ª maior',
             '1 • 3 • 5 • 7',
             'Cmaj7',
+            ['C', 'E', 'G', 'B'],
           ),
 
           _tetrade(
@@ -45,6 +67,7 @@ class TetradsPage extends StatelessWidget {
             'Dominante',
             '1 • 3 • 5 • ♭7',
             'C7',
+            ['C', 'E', 'G', 'A#'],
           ),
 
           _tetrade(
@@ -52,6 +75,7 @@ class TetradsPage extends StatelessWidget {
             'Menor com 7ª menor',
             '1 • ♭3 • 5 • ♭7',
             'Cm7',
+            ['C', 'D#', 'G', 'A#'],
           ),
 
           _tetrade(
@@ -59,6 +83,7 @@ class TetradsPage extends StatelessWidget {
             'Menor com 7ª maior',
             '1 • ♭3 • 5 • 7',
             'Cm(maj7)',
+            ['C', 'D#', 'G', 'B'],
           ),
 
           _tetrade(
@@ -66,6 +91,7 @@ class TetradsPage extends StatelessWidget {
             'Meio diminuto',
             '1 • ♭3 • ♭5 • ♭7',
             'Cm7♭5',
+            ['C', 'D#', 'F#', 'A#'],
           ),
 
           _tetrade(
@@ -73,6 +99,7 @@ class TetradsPage extends StatelessWidget {
             'Diminuta',
             '1 • ♭3 • ♭5 • ♭♭7',
             'Cdim7',
+            ['C', 'D#', 'F#', 'A'],
           ),
         ],
       ),
@@ -84,11 +111,13 @@ class TetradsPage extends StatelessWidget {
     String nome,
     String estrutura,
     String cifra,
+    List<String> notas,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding:
+            const EdgeInsets.all(16),
 
         title: Text(
           nome,
@@ -100,7 +129,8 @@ class TetradsPage extends StatelessWidget {
         ),
 
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
+          padding:
+              const EdgeInsets.only(top: 8),
           child: Text(
             '$estrutura\nExemplo: $cifra',
             style: const TextStyle(
@@ -114,12 +144,11 @@ class TetradsPage extends StatelessWidget {
         ),
 
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$nome — braço interativo em breve.',
-              ),
-            ),
+          _abrirTetrade(
+            context,
+            nome,
+            cifra,
+            notas,
           );
         },
       ),
