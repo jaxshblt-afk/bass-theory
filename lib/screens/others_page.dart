@@ -32,6 +32,14 @@ class OthersPage extends StatelessWidget {
 
           const SizedBox(height: 25),
 
+
+          _botao(
+            context,
+            '🎵 Tríades',
+            'Estude acordes formados por três notas.',
+            '/triades',
+          ),
+
           _botao(
             context,
             '🎼 Tétrades',
