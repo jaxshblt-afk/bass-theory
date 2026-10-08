@@ -13,6 +13,7 @@ import 'screens/about_page.dart';
 import 'screens/others_page.dart';
 
 // Conteúdos da seção Outros
+import 'others/triads_page.dart';
 import 'others/tetrads_page.dart';
 import 'others/bass_scales_page.dart';
 import 'others/chords_page.dart';
@@ -51,6 +52,8 @@ void main() => runApp(
       '/outros': (_) => const OthersPage(),
 
       '/tetrades': (_) => const TetradsPage(),
+
+      '/triades': (_) => const TriadsPage(),
 
       '/escalas': (_) => const BassScalesPage(),
 
