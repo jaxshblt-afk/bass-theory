@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class TriadFretboardPage extends StatefulWidget {
@@ -18,17 +17,24 @@ class TriadFretboardPage extends StatefulWidget {
       _TriadFretboardPageState();
 }
 
-class _TriadFretboardPageState
-    extends State<TriadFretboardPage> {
+class _TriadFretboardPageState extends State<TriadFretboardPage> {
   static const List<String> notas = [
-    'C', 'C#', 'D', 'D#', 'E', 'F',
-    'F#', 'G', 'G#', 'A', 'A#', 'B',
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
   ];
 
-  // Ordem visual do braço.
   static const List<String> cordas = ['G', 'D', 'A', 'E'];
 
-  // Afinação padrão: E - A - D - G.
   static const Map<String, int> afinacao = {
     'E': 4,
     'A': 9,
@@ -47,19 +53,20 @@ class _TriadFretboardPageState
     return notas[(afinacao[corda]! + casa) % 12];
   }
 
-  bool fazParteDaTriade(String nota) =>
-      widget.notasTriade.contains(nota);
+  bool fazParteDaTriade(String nota) {
+    return widget.notasTriade.contains(nota);
+  }
 
-  bool ehTonica(String nota) =>
-      widget.notasTriade.isNotEmpty &&
-      nota == widget.notasTriade.first;
+  bool ehTonica(String nota) {
+    return widget.notasTriade.isNotEmpty &&
+        nota == widget.notasTriade.first;
+  }
 
-  // Guia visual: 1, 2 e 3 representam as três notas
-  // da tríade. É uma sugestão didática, não uma
-  // digitação universal para todas as posições.
   int numeroDedo(String nota) {
     final indice = widget.notasTriade.indexOf(nota);
+
     if (indice < 0) return 0;
+
     return indice + 1;
   }
 
@@ -75,41 +82,66 @@ class _TriadFretboardPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('🎸 ${widget.cifra}'),
+        title: const Text('Tríades no Braço'),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                widget.nome,
-                style: const TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        widget.nome,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.cifra,
+                        style: const TextStyle(
+                          fontSize: 19,
+                          color: Colors.orangeAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Notas da tríade',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        children: widget.notasTriade.map((nota) {
+                          return Chip(
+                            label: Text(nota),
+                            backgroundColor: ehTonica(nota)
+                                ? Colors.blue.shade800
+                                : Colors.orange.shade800,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                widget.cifra,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueAccent,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                'Notas: ${widget.notasTriade.join(' • ')}',
-                style: const TextStyle(
-                  fontSize: 17,
-                  color: Colors.white70,
-                ),
-              ),
-              const SizedBox(height: 15),
+
+              const SizedBox(height: 12),
 
               _construirNotaSelecionada(),
+
               const SizedBox(height: 12),
 
               Card(
@@ -119,11 +151,9 @@ class _TriadFretboardPageState
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'Mão-guia transparente',
-                        ),
+                        title: const Text('Mostrar mão no braço'),
                         subtitle: const Text(
-                          'Mostrar números dos dedos nas notas',
+                          'Exibe uma ilustração dos dedos sobre as cordas.',
                         ),
                         value: mostrarMao,
                         onChanged: (valor) {
@@ -132,27 +162,32 @@ class _TriadFretboardPageState
                           });
                         },
                       ),
-                      if (mostrarMao)
-                        Row(
-                          children: [
-                            const Text('Transparência'),
-                            Expanded(
-                              child: Slider(
-                                value: opacidadeMao,
-                                min: 0.10,
-                                max: 0.65,
-                                divisions: 11,
-                                label:
-                                    '${(opacidadeMao * 100).round()}%',
-                                onChanged: (valor) {
-                                  setState(() {
-                                    opacidadeMao = valor;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
+                      const Divider(),
+                      Row(
+                        children: [
+                          const Icon(Icons.opacity),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text('Transparência da mão'),
+                          ),
+                          Text(
+                            '${(opacidadeMao * 100).round()}%',
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: opacidadeMao,
+                        min: 0.05,
+                        max: 0.65,
+                        divisions: 12,
+                        label:
+                            '${(opacidadeMao * 100).round()}%',
+                        onChanged: (valor) {
+                          setState(() {
+                            opacidadeMao = valor;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -160,38 +195,35 @@ class _TriadFretboardPageState
 
               const SizedBox(height: 12),
 
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Wrap(
-                    spacing: 14,
-                    runSpacing: 8,
-                    children: [
-                      _legenda(Colors.blueAccent, 'Tônica'),
-                      _legenda(Colors.orangeAccent, 'Tríade'),
-                      _legenda(Colors.white, 'Selecionada'),
-                      if (mostrarMao)
-                        _legenda(
-                          Colors.white.withOpacity(opacidadeMao),
-                          'Dedo 1, 2 ou 3',
-                        ),
-                    ],
-                  ),
+              _construirLegenda(),
+
+              const SizedBox(height: 12),
+
+              const Text(
+                'Braço do contrabaixo',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 16),
-              _construirBraco(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
-              const Text(
-                'Toque em uma casa para selecionar uma nota. '
-                'Os números são um guia inicial para estudar '
-                'as três notas da tríade. A digitação ideal '
-                'pode mudar conforme a posição no braço.',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
+              _construirBraco(),
+
+              const SizedBox(height: 12),
+
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    'Toque em uma casa para ver a nota e a corda. '
+                    'A mão é uma ilustração visual de referência; '
+                    'a posição exata dos dedos depende da digitação '
+                    'e da região do braço escolhida.',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ],
@@ -203,99 +235,45 @@ class _TriadFretboardPageState
 
   Widget _construirNotaSelecionada() {
     if (notaSelecionada == null) {
-      return Card(
+      return const Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white12,
-                ),
-                child: const Center(
-                  child: Text(
-                    '?',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 15),
-              const Expanded(
-                child: Text(
-                  'Toque em uma casa do braço',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          padding: EdgeInsets.all(14),
+          child: Text(
+            'Toque em uma casa do braço para selecionar uma nota.',
+            textAlign: TextAlign.center,
           ),
         ),
       );
     }
 
-    final tonica = ehTonica(notaSelecionada!);
+    final pertence = fazParteDaTriade(notaSelecionada!);
 
     return Card(
+      color: pertence
+          ? Colors.green.shade900
+          : Colors.grey.shade900,
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
+        padding: const EdgeInsets.all(14),
+        child: Column(
           children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: tonica
-                    ? Colors.blueAccent
-                    : Colors.orangeAccent,
-              ),
-              child: Center(
-                child: Text(
-                  notaSelecionada!,
-                  style: const TextStyle(
-                    fontSize: 23,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            Text(
+              'Nota: $notaSelecionada',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Nota selecionada',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$notaSelecionada • Corda $cordaSelecionada • '
-                    'Casa $casaSelecionada',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    tonica ? 'Tônica da tríade' : 'Nota da tríade',
-                    style: TextStyle(
-                      color: tonica
-                          ? Colors.blueAccent
-                          : Colors.orangeAccent,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 5),
+            Text('Corda: $cordaSelecionada'),
+            Text('Casa: $casaSelecionada'),
+            const SizedBox(height: 5),
+            Text(
+              pertence
+                  ? ehTonica(notaSelecionada!)
+                      ? 'Tônica da tríade'
+                      : 'Nota pertencente à tríade'
+                  : 'Nota fora desta tríade',
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -303,26 +281,58 @@ class _TriadFretboardPageState
     );
   }
 
-  Widget _legenda(Color cor, String texto) {
+  Widget _construirLegenda() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 16,
+          runSpacing: 10,
+          children: [
+            _itemLegenda(
+              Colors.blue,
+              'Tônica',
+            ),
+            _itemLegenda(
+              Colors.orange,
+              'Outras notas da tríade',
+            ),
+            _itemLegenda(
+              Colors.grey,
+              'Outras notas',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _itemLegenda(Color cor, String texto) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16,
-          height: 16,
+          width: 13,
+          height: 13,
           decoration: BoxDecoration(
             color: cor,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white38),
           ),
         ),
-        const SizedBox(width: 6),
-        Text(texto),
+        const SizedBox(width: 5),
+        Text(
+          texto,
+          style: const TextStyle(fontSize: 12),
+        ),
       ],
     );
   }
 
   Widget _construirBraco() {
+    const largura = 45.0 + (25 * 58.0);
+    const altura = 32.0 + (4 * 64.0);
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
@@ -333,19 +343,34 @@ class _TriadFretboardPageState
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF68432B),
-              Color(0xFF3E2518),
-              Color(0xFF68432B),
+              Color(0xFF604027),
+              Color(0xFF352016),
+              Color(0xFF604027),
             ],
           ),
         ),
-        child: Column(
+        child: Stack(
           children: [
-            _cabecalho(),
-            ...cordas.map(_construirCorda),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _cabecalho(),
+                ...cordas.map(_construirCorda),
+              ],
+            ),
+
+            if (mostrarMao)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: MaoBaixoPainter(
+                      opacidade: opacidadeMao,
+                    ),
+                    size: const Size(largura, altura),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -355,22 +380,32 @@ class _TriadFretboardPageState
   Widget _cabecalho() {
     return Row(
       children: [
-        Container(width: 45, height: 32),
-        ...List.generate(
-          25,
-          (casa) => Container(
+        const SizedBox(width: 45),
+        ...List.generate(25, (index) {
+          return Container(
             width: 58,
             height: 32,
             alignment: Alignment.center,
-            child: Text(
-              '$casa',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white70,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white24,
+                width: 0.5,
               ),
             ),
-          ),
-        ),
+            child: Text(
+              '$index',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: index == 0
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+                color: index == 0
+                    ? Colors.orangeAccent
+                    : Colors.white,
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -382,139 +417,155 @@ class _TriadFretboardPageState
           width: 45,
           height: 64,
           alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: Colors.white38,
+              ),
+              bottom: BorderSide(
+                color: Colors.white24,
+              ),
+            ),
+          ),
           child: Text(
             corda,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 19,
               fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
+              color: Colors.white,
             ),
           ),
         ),
         ...List.generate(25, (casa) {
           final nota = notaNaCasa(corda, casa);
+
           return _construirCasa(
-            corda,
-            casa,
-            nota,
-            fazParteDaTriade(nota),
-            ehTonica(nota),
-            corda == cordaSelecionada &&
-                casa == casaSelecionada,
+            corda: corda,
+            casa: casa,
+            nota: nota,
           );
         }),
       ],
     );
   }
 
-  Widget _construirCasa(
-    String corda,
-    int casa,
-    String nota,
-    bool pertence,
-    bool tonica,
-    bool selecionada,
-  ) {
-    Color? cor;
+  Widget _construirCasa({
+    required String corda,
+    required int casa,
+    required String nota,
+  }) {
+    final pertence = fazParteDaTriade(nota);
+    final tonica = ehTonica(nota);
 
-    if (selecionada) {
-      cor = Colors.white;
-    } else if (tonica) {
-      cor = Colors.blueAccent;
-    } else if (pertence) {
-      cor = Colors.orangeAccent;
+    final selecionada =
+        cordaSelecionada == corda &&
+        casaSelecionada == casa;
+
+    Color corNota = Colors.white24;
+
+    if (pertence) {
+      corNota = tonica
+          ? Colors.blue
+          : Colors.orange;
     }
 
-    final dedo = numeroDedo(nota);
+    if (selecionada) {
+      corNota = Colors.greenAccent;
+    }
 
     return GestureDetector(
-      onTap: () => selecionarCasa(corda, casa, nota),
+      onTap: () {
+        selecionarCasa(corda, casa, nota);
+      },
       child: Container(
         width: 58,
         height: 64,
         decoration: BoxDecoration(
           border: Border(
             right: BorderSide(
-              color: Colors.white54,
-              width: casa == 0 ? 4 : 2,
+              color: Colors.white24,
+              width: casa == 0 ? 1.5 : 0.5,
             ),
             bottom: const BorderSide(
-              color: Colors.black54,
+              color: Colors.white24,
+              width: 0.5,
             ),
           ),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            if (cor != null)
-              Container(
-                width: selecionada ? 44 : tonica ? 42 : 38,
-                height: selecionada ? 44 : tonica ? 42 : 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: cor,
-                  border: selecionada
-                      ? Border.all(
-                          color: Colors.blueAccent,
-                          width: 3,
-                        )
-                      : null,
-                  boxShadow: [
-                    BoxShadow(
-                      color: cor.withOpacity(0.35),
-                      blurRadius: 7,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    nota,
-                    style: TextStyle(
-                      color: selecionada ? Colors.black : Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-
-            // Marcador semitransparente do dedo.
-            if (mostrarMao && pertence && dedo > 0)
-              Positioned(
-                top: 2,
-                left: 2,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(opacidadeMao),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.75),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    '$dedo',
-                    style: TextStyle(
-                      color: Colors.black.withOpacity(0.9),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-
             Positioned(
-              right: 2,
-              top: 0,
-              bottom: 0,
+              left: 0,
+              right: 0,
+              top: 30,
               child: Container(
-                width: _espessuraCorda(corda),
+                height: _espessuraCorda(corda),
                 color: Colors.white70,
               ),
             ),
+
+            if (casa == 0)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 3,
+                  color: Colors.white54,
+                ),
+              ),
+
+            if (pertence)
+              Container(
+                width: selecionada ? 39 : 34,
+                height: selecionada ? 39 : 34,
+                decoration: BoxDecoration(
+                  color: corNota,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: selecionada ? 2 : 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: corNota.withOpacity(0.35),
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  nota,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            else if (selecionada)
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 2,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  nota,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -529,10 +580,187 @@ class _TriadFretboardPageState
         return 4;
       case 'D':
         return 3;
-      case 'G':
-        return 2;
       default:
-        return 3;
+        return 2;
     }
+  }
+}
+
+class MaoBaixoPainter extends CustomPainter {
+  final double opacidade;
+
+  MaoBaixoPainter({
+    required this.opacidade,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final corPele = Color.fromRGBO(
+      255,
+      205,
+      160,
+      opacidade,
+    );
+
+    final corContorno = Color.fromRGBO(
+      255,
+      235,
+      215,
+      (opacidade + 0.18).clamp(0.0, 1.0),
+    );
+
+    final preenchimento = Paint()
+      ..color = corPele
+      ..style = PaintingStyle.fill;
+
+    final contorno = Paint()
+      ..color = corContorno
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    final centroX = 220.0;
+    final escala = 1.0;
+
+    canvas.save();
+
+    canvas.translate(centroX, 0);
+    canvas.scale(escala);
+
+    // Palma da mão.
+    final palma = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(
+        -70,
+        135,
+        130,
+        95,
+      ),
+      const Radius.circular(35),
+    );
+
+    canvas.drawRRect(palma, preenchimento);
+    canvas.drawRRect(palma, contorno);
+
+    // Indicador: dedo 1.
+    _desenharDedo(
+      canvas,
+      preenchimento,
+      contorno,
+      const Rect.fromLTWH(-65, 55, 28, 112),
+      1,
+    );
+
+    // Médio: dedo 2.
+    _desenharDedo(
+      canvas,
+      preenchimento,
+      contorno,
+      const Rect.fromLTWH(-32, 35, 28, 132),
+      2,
+    );
+
+    // Anelar: dedo 3.
+    _desenharDedo(
+      canvas,
+      preenchimento,
+      contorno,
+      const Rect.fromLTWH(1, 48, 28, 119),
+      3,
+    );
+
+    // Mínimo: dedo 4.
+    _desenharDedo(
+      canvas,
+      preenchimento,
+      contorno,
+      const Rect.fromLTWH(34, 75, 26, 92),
+      4,
+    );
+
+    // Polegar inclinado para o lado.
+    final polegar = Path()
+      ..moveTo(-63, 155)
+      ..quadraticBezierTo(-95, 135, -108, 108)
+      ..quadraticBezierTo(-116, 91, -103, 83)
+      ..quadraticBezierTo(-91, 78, -82, 94)
+      ..lineTo(-47, 136)
+      ..close();
+
+    canvas.drawPath(polegar, preenchimento);
+    canvas.drawPath(polegar, contorno);
+
+    // Linha da palma.
+    final linhaPalma = Paint()
+      ..color = corContorno
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawArc(
+      const Rect.fromLTWH(-48, 155, 75, 45),
+      0.2,
+      2.3,
+      false,
+      linhaPalma,
+    );
+
+    canvas.restore();
+  }
+
+  void _desenharDedo(
+    Canvas canvas,
+    Paint preenchimento,
+    Paint contorno,
+    Rect retangulo,
+    int numero,
+  ) {
+    final dedo = RRect.fromRectAndRadius(
+      retangulo,
+      const Radius.circular(14),
+    );
+
+    canvas.drawRRect(dedo, preenchimento);
+    canvas.drawRRect(dedo, contorno);
+
+    final centro = Offset(
+      retangulo.center.dx,
+      retangulo.top + 20,
+    );
+
+    final fundoNumero = Paint()
+      ..color = Colors.black.withOpacity(
+        (opacidade + 0.35).clamp(0.0, 0.8),
+      );
+
+    canvas.drawCircle(
+      centro,
+      10,
+      fundoNumero,
+    );
+
+    final texto = TextPainter(
+      text: TextSpan(
+        text: '$numero',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    texto.layout();
+
+    texto.paint(
+      canvas,
+      Offset(
+        centro.dx - texto.width / 2,
+        centro.dy - texto.height / 2,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant MaoBaixoPainter oldDelegate) {
+    return oldDelegate.opacidade != opacidade;
   }
 }
