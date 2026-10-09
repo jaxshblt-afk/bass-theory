@@ -62,20 +62,66 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
         nota == widget.notasTriade.first;
   }
 
-  int numeroDedo(String nota) {
-    final indice = widget.notasTriade.indexOf(nota);
-
-    if (indice < 0) return 0;
-
-    return indice + 1;
-  }
-
   void selecionarCasa(String corda, int casa, String nota) {
     setState(() {
       cordaSelecionada = corda;
       casaSelecionada = casa;
       notaSelecionada = nota;
     });
+  }
+
+  // Procura uma posição para cada nota da tríade.
+  // Prioriza casas próximas e distribui as notas entre as cordas.
+  List<PosicaoDedo> _calcularPosicoesDedos() {
+    final resultado = <PosicaoDedo>[];
+    final notasUsadas = <String>{};
+    final casasUsadas = <String>{};
+
+    for (int i = 0; i < widget.notasTriade.length && i < 4; i++) {
+      final nota = widget.notasTriade[i];
+
+      if (notasUsadas.contains(nota)) continue;
+
+      PosicaoDedo? melhor;
+      double melhorPontuacao = double.infinity;
+
+      for (int cordaIndex = 0;
+          cordaIndex < cordas.length;
+          cordaIndex++) {
+        final corda = cordas[cordaIndex];
+
+        for (int casa = 0; casa <= 12; casa++) {
+          if (notaNaCasa(corda, casa) != nota) continue;
+
+          final chave = '$corda-$casa';
+
+          if (casasUsadas.contains(chave)) continue;
+
+          // Favorece uma região compacta do braço.
+          final pontuacao =
+              casa.toDouble() + cordaIndex * 0.8;
+
+          if (pontuacao < melhorPontuacao) {
+            melhorPontuacao = pontuacao;
+
+            melhor = PosicaoDedo(
+              nota: nota,
+              corda: corda,
+              casa: casa,
+              dedo: i + 1,
+            );
+          }
+        }
+      }
+
+      if (melhor != null) {
+        resultado.add(melhor);
+        notasUsadas.add(nota);
+        casasUsadas.add('${melhor.corda}-${melhor.casa}');
+      }
+    }
+
+    return resultado;
   }
 
   @override
@@ -151,9 +197,9 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Mostrar mão no braço'),
+                        title: const Text('Mostrar dedos no braço'),
                         subtitle: const Text(
-                          'Exibe uma ilustração dos dedos sobre as cordas.',
+                          'Posiciona os dedos nas notas sugeridas.',
                         ),
                         value: mostrarMao,
                         onChanged: (valor) {
@@ -168,7 +214,7 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
                           const Icon(Icons.opacity),
                           const SizedBox(width: 8),
                           const Expanded(
-                            child: Text('Transparência da mão'),
+                            child: Text('Transparência dos dedos'),
                           ),
                           Text(
                             '${(opacidadeMao * 100).round()}%',
@@ -218,10 +264,11 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
                 child: Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
-                    'Toque em uma casa para ver a nota e a corda. '
-                    'A mão é uma ilustração visual de referência; '
-                    'a posição exata dos dedos depende da digitação '
-                    'e da região do braço escolhida.',
+                    'Os números indicam os dedos sugeridos para '
+                    'cada nota: 1 = indicador, 2 = médio, '
+                    '3 = anelar e 4 = mínimo. A posição mostrada '
+                    'é uma sugestão visual; outras digitações '
+                    'podem ser melhores dependendo da música.',
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -290,17 +337,17 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
           spacing: 16,
           runSpacing: 10,
           children: [
+            _itemLegenda(Colors.blue, 'Tônica'),
+            _itemLegenda(Colors.orange, 'Notas da tríade'),
+            _itemLegenda(Colors.grey, 'Outras notas'),
             _itemLegenda(
-              Colors.blue,
-              'Tônica',
-            ),
-            _itemLegenda(
-              Colors.orange,
-              'Outras notas da tríade',
-            ),
-            _itemLegenda(
-              Colors.grey,
-              'Outras notas',
+              Color.fromRGBO(
+                255,
+                205,
+                160,
+                opacidadeMao,
+              ),
+              'Dedos',
             ),
           ],
         ),
@@ -330,8 +377,7 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
   }
 
   Widget _construirBraco() {
-    const largura = 45.0 + (25 * 58.0);
-    const altura = 32.0 + (4 * 64.0);
+    final posicoes = _calcularPosicoesDedos();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -350,27 +396,16 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
             ],
           ),
         ),
-        child: Stack(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _cabecalho(),
-                ...cordas.map(_construirCorda),
-              ],
-            ),
-
-            if (mostrarMao)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: MaoBaixoPainter(
-                      opacidade: opacidadeMao,
-                    ),
-                    size: const Size(largura, altura),
-                  ),
-                ),
-              ),
+            _cabecalho(),
+            ...cordas.map((corda) {
+              return _construirCorda(
+                corda,
+                posicoes,
+              );
+            }),
           ],
         ),
       ),
@@ -410,7 +445,10 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
     );
   }
 
-  Widget _construirCorda(String corda) {
+  Widget _construirCorda(
+    String corda,
+    List<PosicaoDedo> posicoes,
+  ) {
     return Row(
       children: [
         Container(
@@ -439,10 +477,19 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
         ...List.generate(25, (casa) {
           final nota = notaNaCasa(corda, casa);
 
+          final posicaoDedo = posicoes.where(
+            (p) => p.corda == corda && p.casa == casa,
+          );
+
+          final dedo = posicaoDedo.isEmpty
+              ? null
+              : posicaoDedo.first;
+
           return _construirCasa(
             corda: corda,
             casa: casa,
             nota: nota,
+            dedo: dedo,
           );
         }),
       ],
@@ -453,6 +500,7 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
     required String corda,
     required int casa,
     required String nota,
+    PosicaoDedo? dedo,
   }) {
     final pertence = fazParteDaTriade(nota);
     final tonica = ehTonica(nota);
@@ -464,9 +512,7 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
     Color corNota = Colors.white24;
 
     if (pertence) {
-      corNota = tonica
-          ? Colors.blue
-          : Colors.orange;
+      corNota = tonica ? Colors.blue : Colors.orange;
     }
 
     if (selecionada) {
@@ -566,6 +612,52 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
                   ),
                 ),
               ),
+
+            // A ponta do dedo fica centralizada na nota escolhida.
+            if (mostrarMao && dedo != null)
+              Positioned(
+                top: 5,
+                child: IgnorePointer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 25,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: Color.fromRGBO(
+                            255,
+                            205,
+                            160,
+                            opacidadeMao,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Color.fromRGBO(
+                              255,
+                              235,
+                              215,
+                              (opacidadeMao + 0.18).clamp(0.0, 1.0),
+                            ),
+                            width: 1.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${dedo.dedo}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(
+                              (opacidadeMao + 0.55).clamp(0.0, 1.0),
+                            ),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -586,181 +678,16 @@ class _TriadFretboardPageState extends State<TriadFretboardPage> {
   }
 }
 
-class MaoBaixoPainter extends CustomPainter {
-  final double opacidade;
+class PosicaoDedo {
+  final String nota;
+  final String corda;
+  final int casa;
+  final int dedo;
 
-  MaoBaixoPainter({
-    required this.opacidade,
+  const PosicaoDedo({
+    required this.nota,
+    required this.corda,
+    required this.casa,
+    required this.dedo,
   });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final corPele = Color.fromRGBO(
-      255,
-      205,
-      160,
-      opacidade,
-    );
-
-    final corContorno = Color.fromRGBO(
-      255,
-      235,
-      215,
-      (opacidade + 0.18).clamp(0.0, 1.0),
-    );
-
-    final preenchimento = Paint()
-      ..color = corPele
-      ..style = PaintingStyle.fill;
-
-    final contorno = Paint()
-      ..color = corContorno
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final centroX = 220.0;
-    final escala = 1.0;
-
-    canvas.save();
-
-    canvas.translate(centroX, 0);
-    canvas.scale(escala);
-
-    // Palma da mão.
-    final palma = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(
-        -70,
-        135,
-        130,
-        95,
-      ),
-      const Radius.circular(35),
-    );
-
-    canvas.drawRRect(palma, preenchimento);
-    canvas.drawRRect(palma, contorno);
-
-    // Indicador: dedo 1.
-    _desenharDedo(
-      canvas,
-      preenchimento,
-      contorno,
-      const Rect.fromLTWH(-65, 55, 28, 112),
-      1,
-    );
-
-    // Médio: dedo 2.
-    _desenharDedo(
-      canvas,
-      preenchimento,
-      contorno,
-      const Rect.fromLTWH(-32, 35, 28, 132),
-      2,
-    );
-
-    // Anelar: dedo 3.
-    _desenharDedo(
-      canvas,
-      preenchimento,
-      contorno,
-      const Rect.fromLTWH(1, 48, 28, 119),
-      3,
-    );
-
-    // Mínimo: dedo 4.
-    _desenharDedo(
-      canvas,
-      preenchimento,
-      contorno,
-      const Rect.fromLTWH(34, 75, 26, 92),
-      4,
-    );
-
-    // Polegar inclinado para o lado.
-    final polegar = Path()
-      ..moveTo(-63, 155)
-      ..quadraticBezierTo(-95, 135, -108, 108)
-      ..quadraticBezierTo(-116, 91, -103, 83)
-      ..quadraticBezierTo(-91, 78, -82, 94)
-      ..lineTo(-47, 136)
-      ..close();
-
-    canvas.drawPath(polegar, preenchimento);
-    canvas.drawPath(polegar, contorno);
-
-    // Linha da palma.
-    final linhaPalma = Paint()
-      ..color = corContorno
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawArc(
-      const Rect.fromLTWH(-48, 155, 75, 45),
-      0.2,
-      2.3,
-      false,
-      linhaPalma,
-    );
-
-    canvas.restore();
-  }
-
-  void _desenharDedo(
-    Canvas canvas,
-    Paint preenchimento,
-    Paint contorno,
-    Rect retangulo,
-    int numero,
-  ) {
-    final dedo = RRect.fromRectAndRadius(
-      retangulo,
-      const Radius.circular(14),
-    );
-
-    canvas.drawRRect(dedo, preenchimento);
-    canvas.drawRRect(dedo, contorno);
-
-    final centro = Offset(
-      retangulo.center.dx,
-      retangulo.top + 20,
-    );
-
-    final fundoNumero = Paint()
-      ..color = Colors.black.withOpacity(
-        (opacidade + 0.35).clamp(0.0, 0.8),
-      );
-
-    canvas.drawCircle(
-      centro,
-      10,
-      fundoNumero,
-    );
-
-    final texto = TextPainter(
-      text: TextSpan(
-        text: '$numero',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-
-    texto.layout();
-
-    texto.paint(
-      canvas,
-      Offset(
-        centro.dx - texto.width / 2,
-        centro.dy - texto.height / 2,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant MaoBaixoPainter oldDelegate) {
-    return oldDelegate.opacidade != opacidade;
-  }
 }
