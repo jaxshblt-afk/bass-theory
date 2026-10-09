@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class TriadFretboardPage extends StatefulWidget {
@@ -20,34 +21,14 @@ class TriadFretboardPage extends StatefulWidget {
 class _TriadFretboardPageState
     extends State<TriadFretboardPage> {
   static const List<String> notas = [
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'E',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'A',
-    'A#',
-    'B',
+    'C', 'C#', 'D', 'D#', 'E', 'F',
+    'F#', 'G', 'G#', 'A', 'A#', 'B',
   ];
 
-  // Ordem visual das cordas:
-  // G
-  // D
-  // A
-  // E
-  static const List<String> cordas = [
-    'G',
-    'D',
-    'A',
-    'E',
-  ];
+  // Ordem visual do braço.
+  static const List<String> cordas = ['G', 'D', 'A', 'E'];
 
-  // Afinação padrão do contrabaixo:
-  // E - A - D - G
+  // Afinação padrão: E - A - D - G.
   static const Map<String, int> afinacao = {
     'E': 4,
     'A': 9,
@@ -59,35 +40,30 @@ class _TriadFretboardPageState
   int? casaSelecionada;
   String? notaSelecionada;
 
-  String notaNaCasa(
-    String corda,
-    int casa,
-  ) {
-    final inicio = afinacao[corda]!;
+  bool mostrarMao = true;
+  double opacidadeMao = 0.28;
 
-    return notas[
-      (inicio + casa) % 12
-    ];
+  String notaNaCasa(String corda, int casa) {
+    return notas[(afinacao[corda]! + casa) % 12];
   }
 
-  bool fazParteDaTriade(
-    String nota,
-  ) {
-    return widget.notasTriade.contains(nota);
+  bool fazParteDaTriade(String nota) =>
+      widget.notasTriade.contains(nota);
+
+  bool ehTonica(String nota) =>
+      widget.notasTriade.isNotEmpty &&
+      nota == widget.notasTriade.first;
+
+  // Guia visual: 1, 2 e 3 representam as três notas
+  // da tríade. É uma sugestão didática, não uma
+  // digitação universal para todas as posições.
+  int numeroDedo(String nota) {
+    final indice = widget.notasTriade.indexOf(nota);
+    if (indice < 0) return 0;
+    return indice + 1;
   }
 
-  bool ehTonica(
-    String nota,
-  ) {
-    return widget.notasTriade.isNotEmpty &&
-        nota == widget.notasTriade.first;
-  }
-
-  void selecionarCasa(
-    String corda,
-    int casa,
-    String nota,
-  ) {
+  void selecionarCasa(String corda, int casa, String nota) {
     setState(() {
       cordaSelecionada = corda;
       casaSelecionada = casa;
@@ -99,16 +75,13 @@ class _TriadFretboardPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '🎸 ${widget.cifra}',
-        ),
+        title: Text('🎸 ${widget.cifra}'),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 widget.nome,
@@ -117,9 +90,7 @@ class _TriadFretboardPageState
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 widget.cifra,
                 style: const TextStyle(
@@ -128,9 +99,7 @@ class _TriadFretboardPageState
                   color: Colors.blueAccent,
                 ),
               ),
-
               const SizedBox(height: 15),
-
               Text(
                 'Notas: ${widget.notasTriade.join(' • ')}',
                 style: const TextStyle(
@@ -138,49 +107,88 @@ class _TriadFretboardPageState
                   color: Colors.white70,
                 ),
               ),
-
               const SizedBox(height: 15),
 
               _construirNotaSelecionada(),
-
-              const SizedBox(height: 15),
+              const SizedBox(height: 12),
 
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
                     children: [
-                      _legenda(
-                        Colors.blueAccent,
-                        'Tônica',
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text(
+                          'Mão-guia transparente',
+                        ),
+                        subtitle: const Text(
+                          'Mostrar números dos dedos nas notas',
+                        ),
+                        value: mostrarMao,
+                        onChanged: (valor) {
+                          setState(() {
+                            mostrarMao = valor;
+                          });
+                        },
                       ),
-
-                      const SizedBox(width: 18),
-
-                      _legenda(
-                        Colors.orangeAccent,
-                        'Tríade',
-                      ),
-
-                      const SizedBox(width: 18),
-
-                      _legenda(
-                        Colors.white,
-                        'Selecionada',
-                      ),
+                      if (mostrarMao)
+                        Row(
+                          children: [
+                            const Text('Transparência'),
+                            Expanded(
+                              child: Slider(
+                                value: opacidadeMao,
+                                min: 0.10,
+                                max: 0.65,
+                                divisions: 11,
+                                label:
+                                    '${(opacidadeMao * 100).round()}%',
+                                onChanged: (valor) {
+                                  setState(() {
+                                    opacidadeMao = valor;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
 
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 14,
+                    runSpacing: 8,
+                    children: [
+                      _legenda(Colors.blueAccent, 'Tônica'),
+                      _legenda(Colors.orangeAccent, 'Tríade'),
+                      _legenda(Colors.white, 'Selecionada'),
+                      if (mostrarMao)
+                        _legenda(
+                          Colors.white.withOpacity(opacidadeMao),
+                          'Dedo 1, 2 ou 3',
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
               _construirBraco(),
-
               const SizedBox(height: 20),
 
               const Text(
-                'As notas destacadas mostram as notas da tríade no braço. Toque em uma casa para selecioná-la.',
+                'Toque em uma casa para selecionar uma nota. '
+                'Os números são um guia inicial para estudar '
+                'as três notas da tríade. A digitação ideal '
+                'pode mudar conforme a posição no braço.',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 15,
@@ -217,9 +225,7 @@ class _TriadFretboardPageState
                   ),
                 ),
               ),
-
               const SizedBox(width: 15),
-
               const Expanded(
                 child: Text(
                   'Toque em uma casa do braço',
@@ -235,8 +241,7 @@ class _TriadFretboardPageState
       );
     }
 
-    final tonica =
-        ehTonica(notaSelecionada!);
+    final tonica = ehTonica(notaSelecionada!);
 
     return Card(
       child: Padding(
@@ -251,15 +256,6 @@ class _TriadFretboardPageState
                 color: tonica
                     ? Colors.blueAccent
                     : Colors.orangeAccent,
-                boxShadow: [
-                  BoxShadow(
-                    color: (tonica
-                            ? Colors.blueAccent
-                            : Colors.orangeAccent)
-                        .withOpacity(0.4),
-                    blurRadius: 10,
-                  ),
-                ],
               ),
               child: Center(
                 child: Text(
@@ -271,39 +267,27 @@ class _TriadFretboardPageState
                 ),
               ),
             ),
-
             const SizedBox(width: 15),
-
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Nota selecionada',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(color: Colors.white70),
                   ),
-
                   const SizedBox(height: 4),
-
                   Text(
-                    '$notaSelecionada • '
-                    'Corda $cordaSelecionada • '
+                    '$notaSelecionada • Corda $cordaSelecionada • '
                     'Casa $casaSelecionada',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
                   Text(
-                    tonica
-                        ? 'Tônica da tríade'
-                        : 'Nota da tríade',
+                    tonica ? 'Tônica da tríade' : 'Nota da tríade',
                     style: TextStyle(
                       color: tonica
                           ? Colors.blueAccent
@@ -319,28 +303,20 @@ class _TriadFretboardPageState
     );
   }
 
-  Widget _legenda(
-    Color cor,
-    String texto,
-  ) {
+  Widget _legenda(Color cor, String texto) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 18,
-          height: 18,
+          width: 16,
+          height: 16,
           decoration: BoxDecoration(
             color: cor,
             shape: BoxShape.circle,
-            border: cor == Colors.white
-                ? Border.all(
-                    color: Colors.white54,
-                  )
-                : null,
+            border: Border.all(color: Colors.white38),
           ),
         ),
-
-        const SizedBox(width: 7),
-
+        const SizedBox(width: 6),
         Text(texto),
       ],
     );
@@ -369,11 +345,7 @@ class _TriadFretboardPageState
         child: Column(
           children: [
             _cabecalho(),
-
-            ...cordas.map(
-              (corda) =>
-                  _construirCorda(corda),
-            ),
+            ...cordas.map(_construirCorda),
           ],
         ),
       ),
@@ -383,11 +355,7 @@ class _TriadFretboardPageState
   Widget _cabecalho() {
     return Row(
       children: [
-        Container(
-          width: 45,
-          height: 32,
-        ),
-
+        Container(width: 45, height: 32),
         ...List.generate(
           25,
           (casa) => Container(
@@ -407,9 +375,7 @@ class _TriadFretboardPageState
     );
   }
 
-  Widget _construirCorda(
-    String corda,
-  ) {
+  Widget _construirCorda(String corda) {
     return Row(
       children: [
         Container(
@@ -425,33 +391,18 @@ class _TriadFretboardPageState
             ),
           ),
         ),
-
-        ...List.generate(
-          25,
-          (casa) {
-            final nota =
-                notaNaCasa(corda, casa);
-
-            final pertence =
-                fazParteDaTriade(nota);
-
-            final tonica =
-                ehTonica(nota);
-
-            final selecionada =
-                corda == cordaSelecionada &&
-                casa == casaSelecionada;
-
-            return _construirCasa(
-              corda,
-              casa,
-              nota,
-              pertence,
-              tonica,
-              selecionada,
-            );
-          },
-        ),
+        ...List.generate(25, (casa) {
+          final nota = notaNaCasa(corda, casa);
+          return _construirCasa(
+            corda,
+            casa,
+            nota,
+            fazParteDaTriade(nota),
+            ehTonica(nota),
+            corda == cordaSelecionada &&
+                casa == casaSelecionada,
+          );
+        }),
       ],
     );
   }
@@ -474,14 +425,10 @@ class _TriadFretboardPageState
       cor = Colors.orangeAccent;
     }
 
+    final dedo = numeroDedo(nota);
+
     return GestureDetector(
-      onTap: () {
-        selecionarCasa(
-          corda,
-          casa,
-          nota,
-        );
-      },
+      onTap: () => selecionarCasa(corda, casa, nota),
       child: Container(
         width: 58,
         height: 64,
@@ -501,16 +448,8 @@ class _TriadFretboardPageState
           children: [
             if (cor != null)
               Container(
-                width: selecionada
-                    ? 44
-                    : tonica
-                        ? 42
-                        : 38,
-                height: selecionada
-                    ? 44
-                    : tonica
-                        ? 42
-                        : 38,
+                width: selecionada ? 44 : tonica ? 42 : 38,
+                height: selecionada ? 44 : tonica ? 42 : 38,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: cor,
@@ -522,9 +461,8 @@ class _TriadFretboardPageState
                       : null,
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          cor.withOpacity(0.45),
-                      blurRadius: 9,
+                      color: cor.withOpacity(0.35),
+                      blurRadius: 7,
                     ),
                   ],
                 ),
@@ -532,12 +470,37 @@ class _TriadFretboardPageState
                   child: Text(
                     nota,
                     style: TextStyle(
-                      color: selecionada
-                          ? Colors.black
-                          : Colors.white,
-                      fontWeight:
-                          FontWeight.bold,
+                      color: selecionada ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.bold,
                       fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Marcador semitransparente do dedo.
+            if (mostrarMao && pertence && dedo > 0)
+              Positioned(
+                top: 2,
+                left: 2,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(opacidadeMao),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.75),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    '$dedo',
+                    style: TextStyle(
+                      color: Colors.black.withOpacity(0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -548,8 +511,7 @@ class _TriadFretboardPageState
               top: 0,
               bottom: 0,
               child: Container(
-                width:
-                    _espessuraCorda(corda),
+                width: _espessuraCorda(corda),
                 color: Colors.white70,
               ),
             ),
@@ -559,22 +521,16 @@ class _TriadFretboardPageState
     );
   }
 
-  double _espessuraCorda(
-    String corda,
-  ) {
+  double _espessuraCorda(String corda) {
     switch (corda) {
       case 'E':
         return 5;
-
       case 'A':
         return 4;
-
       case 'D':
         return 3;
-
       case 'G':
         return 2;
-
       default:
         return 3;
     }
