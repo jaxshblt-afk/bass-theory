@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'triad_fretboard_widgets.dart';
-import 'triad_fretboard_models.dart';
 
 class TriadFretboardPage extends StatefulWidget {
   final String nome;
@@ -26,10 +25,11 @@ class _TriadFretboardPageState
   int? casaSelecionada;
   String? notaSelecionada;
 
-  bool mostrarMao = true;
-  double opacidadeMao = 0.75;
-
-  void selecionarCasa(String corda, int casa, String nota) {
+  void selecionarCasa(
+    String corda,
+    int casa,
+    String nota,
+  ) {
     setState(() {
       cordaSelecionada = corda;
       casaSelecionada = casa;
@@ -67,8 +67,6 @@ class _TriadFretboardPageState
             _cartaoTriade(),
             const SizedBox(height: 16),
             _cartaoNotaSelecionada(),
-            const SizedBox(height: 16),
-            _cartaoControles(),
             const SizedBox(height: 20),
             const Text(
               'BRAÇO DO CONTRABAIXO',
@@ -82,8 +80,6 @@ class _TriadFretboardPageState
               notasTriade: widget.notasTriade,
               cordaSelecionada: cordaSelecionada,
               casaSelecionada: casaSelecionada,
-              mostrarMao: mostrarMao,
-              opacidadeMao: opacidadeMao,
               onSelecionarCasa: selecionarCasa,
             ),
             const SizedBox(height: 16),
@@ -179,7 +175,9 @@ class _TriadFretboardPageState
                 children: [
                   const Text(
                     'Nota selecionada',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: Colors.white70,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -194,43 +192,6 @@ class _TriadFretboardPageState
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _cartaoControles() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Mostrar posições dos dedos'),
-              value: mostrarMao,
-              onChanged: (valor) {
-                setState(() {
-                  mostrarMao = valor;
-                });
-              },
-            ),
-            const SizedBox(height: 8),
-            const Text('Transparência das posições'),
-            Slider(
-              value: opacidadeMao,
-              min: 0.1,
-              max: 1,
-              divisions: 9,
-              label: '${(opacidadeMao * 100).round()}%',
-              onChanged: (valor) {
-                setState(() {
-                  opacidadeMao = valor;
-                });
-              },
             ),
           ],
         ),
@@ -264,10 +225,6 @@ class _TriadFretboardPageState
             _itemLegenda(
               Colors.greenAccent,
               'Casa selecionada',
-            ),
-            _itemLegenda(
-              Colors.cyanAccent,
-              'Posições sugeridas dos dedos',
             ),
           ],
         ),
