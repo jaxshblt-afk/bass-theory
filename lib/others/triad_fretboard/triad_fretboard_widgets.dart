@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'triad_fretboard_models.dart';
-import 'mao/mao_baixo_widget.dart';
 
 class TriadFretboardWidget extends StatelessWidget {
   final List<String> notasTriade;
   final String? cordaSelecionada;
   final int? casaSelecionada;
-  final bool mostrarMao;
-  final double opacidadeMao;
 
   final void Function(
     String corda,
@@ -21,8 +18,6 @@ class TriadFretboardWidget extends StatelessWidget {
     required this.notasTriade,
     required this.cordaSelecionada,
     required this.casaSelecionada,
-    required this.mostrarMao,
-    required this.opacidadeMao,
     required this.onSelecionarCasa,
   });
 
@@ -47,6 +42,7 @@ class TriadFretboardWidget extends StatelessWidget {
 
   String notaNaCasa(String corda, int casa) {
     final notaBase = afinacao[corda] ?? 0;
+
     return notasCromaticas[
         (notaBase + casa) % notasCromaticas.length];
   }
@@ -86,31 +82,11 @@ class TriadFretboardWidget extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SizedBox(
           width: larguraEtiqueta + larguraCasa * 13,
-          child: Stack(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _construirCabecalho(),
-                  ...cordas.map(_construirLinhaCorda),
-                ],
-              ),
-
-              // A imagem da mão fica sobre o braço.
-              // IgnorePointer mantém as casas tocáveis.
-              if (mostrarMao)
-                Positioned(
-                  left: larguraEtiqueta,
-                  top: alturaCabecalho,
-                  child: IgnorePointer(
-                    child: MaoBaixoWidget(
-                      largura: larguraCasa * 13,
-                      altura: alturaCorda * 4,
-                      opacidade: opacidadeMao,
-                      imagemAsset: 'assets/images/mao_baixo.png',
-                    ),
-                  ),
-                ),
+              _construirCabecalho(),
+              ...cordas.map(_construirLinhaCorda),
             ],
           ),
         ),
@@ -195,7 +171,8 @@ class TriadFretboardWidget extends StatelessWidget {
               nota: nota,
               pertence: fazParteDaTriade(nota),
               tonica: ehTonica(nota),
-              selecionada: cordaSelecionada == corda &&
+              selecionada:
+                  cordaSelecionada == corda &&
                   casaSelecionada == casa,
             );
           }),
@@ -279,7 +256,10 @@ class TriadFretboardWidget extends StatelessWidget {
                     : Colors.transparent,
                 shape: BoxShape.circle,
                 border: selecionada
-                    ? Border.all(color: Colors.white, width: 2)
+                    ? Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      )
                     : pertence
                         ? Border.all(
                             color: corNota.withOpacity(0.75),
