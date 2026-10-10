@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'triad_fretboard_page.dart';
+import 'triad_fretboard/triad_fretboard_page.dart';
 
 class TriadsPage extends StatelessWidget {
   const TriadsPage({super.key});
