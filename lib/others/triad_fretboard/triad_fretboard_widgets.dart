@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'triad_fretboard_models.dart';
-import 'bass_hand_painter.dart';
+import 'mao/mao_baixo_widget.dart';
 
 class TriadFretboardWidget extends StatelessWidget {
   final List<String> notasTriade;
@@ -74,14 +74,6 @@ class TriadFretboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posicoes = calcularPosicoesDedos(
-      notasTriade: notasTriade,
-      cordas: cordas,
-      afinacao: afinacao,
-      notasCromaticas: notasCromaticas,
-      casasMaximas: 12,
-    );
-
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF151922),
@@ -103,18 +95,19 @@ class TriadFretboardWidget extends StatelessWidget {
                   ...cordas.map(_construirLinhaCorda),
                 ],
               ),
+
+              // A imagem da mão fica sobre o braço.
+              // IgnorePointer mantém as casas tocáveis.
               if (mostrarMao)
-                Positioned.fill(
+                Positioned(
+                  left: larguraEtiqueta,
+                  top: alturaCabecalho,
                   child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: MaoBaixoPainter(
-                        posicoes: posicoes,
-                        opacidade: opacidadeMao,
-                        larguraEtiqueta: larguraEtiqueta,
-                        larguraCasa: larguraCasa,
-                        alturaCabecalho: alturaCabecalho,
-                        alturaCorda: alturaCorda,
-                      ),
+                    child: MaoBaixoWidget(
+                      largura: larguraCasa * 13,
+                      altura: alturaCorda * 4,
+                      opacidade: opacidadeMao,
+                      imagemAsset: 'assets/images/mao_baixo.png',
                     ),
                   ),
                 ),
