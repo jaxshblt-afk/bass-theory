@@ -1,4 +1,3 @@
-Escrita
 import 'package:flutter/material.dart';
 
 import 'triad_fretboard_models.dart';
@@ -24,98 +23,102 @@ class MaoBaixoPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final alpha = opacidade.clamp(0.0, 1.0).toDouble();
-    if (alpha <= 0) return;
+    if (posicoes.isEmpty) return;
 
-    final fundoDedo = Paint()
-      ..color = const Color(0xFF102638).withOpacity(alpha * 0.9)
+    final alpha = opacidade.clamp(0.0, 1.0).toDouble();
+
+    final tintaLinha = Paint()
+      ..color = Colors.cyanAccent.withOpacity(alpha * 0.75)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final tintaDedo = Paint()
+      ..color = const Color(0xFF101820).withOpacity(alpha * 0.90)
       ..style = PaintingStyle.fill;
 
-    final bordaDedo = Paint()
+    final tintaBorda = Paint()
       ..color = Colors.cyanAccent.withOpacity(alpha)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
-    final linhaArticulacao = Paint()
-      ..color = Colors.cyanAccent.withOpacity(alpha * 0.45)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final estiloNumero = TextStyle(
+    final tintaTexto = TextStyle(
       color: Colors.white.withOpacity(alpha),
       fontSize: 12,
       fontWeight: FontWeight.bold,
     );
 
-    final validas = posicoes.where((p) =>
-        ordemCordas.contains(p.corda) &&
-        p.casa >= 0 &&
-        p.casa <= 12).toList();
+    final pontos = <Offset>[];
 
-    // Desenha apenas pequenas articulações entre dedos próximos.
-    for (int i = 0; i < validas.length; i++) {
-      final a = validas[i];
-      final linhaA = ordemCordas.indexOf(a.corda);
-      final pontoA = Offset(
-        larguraEtiqueta + larguraCasa * a.casa + larguraCasa / 2,
-        alturaCabecalho + alturaCorda * linhaA + alturaCorda / 2,
-      );
+    for (final posicao in posicoes) {
+      final indiceCorda = ordemCordas.indexOf(posicao.corda);
 
-      for (int j = i + 1; j < validas.length; j++) {
-        final b = validas[j];
-
-        // Não conecta o mesmo dedo a todas as notas.
-        if (a.dedo != b.dedo) continue;
-
-        final linhaB = ordemCordas.indexOf(b.corda);
-        final pontoB = Offset(
-          larguraEtiqueta + larguraCasa * b.casa + larguraCasa / 2,
-          alturaCabecalho + alturaCorda * linhaB + alturaCorda / 2,
-        );
-
-        if ((pontoA - pontoB).distance > larguraCasa * 1.25) {
-          continue;
-        }
-
-        canvas.drawLine(pontoA, pontoB, linhaArticulacao);
+      if (indiceCorda < 0 ||
+          posicao.casa < 0 ||
+          posicao.casa > 12) {
+        continue;
       }
+
+      final x = larguraEtiqueta +
+          larguraCasa * posicao.casa +
+          larguraCasa / 2;
+
+      final y = alturaCabecalho +
+          alturaCorda * indiceCorda +
+          alturaCorda / 2;
+
+      pontos.add(Offset(x, y));
     }
 
-    // Cada dedo é mostrado individualmente.
-    for (final p in validas) {
-      final linha = ordemCordas.indexOf(p.corda);
+    if (pontos.isEmpty) return;
+
+    if (pontos.length > 1) {
+      final caminho = Path()
+        ..moveTo(pontos.first.dx, pontos.first.dy);
+
+      for (int i = 1; i < pontos.length; i++) {
+        caminho.lineTo(pontos[i].dx, pontos[i].dy);
+      }
+
+      canvas.drawPath(caminho, tintaLinha);
+    }
+
+    for (final posicao in posicoes) {
+      final indiceCorda = ordemCordas.indexOf(posicao.corda);
+
+      if (indiceCorda < 0 ||
+          posicao.casa < 0 ||
+          posicao.casa > 12) {
+        continue;
+      }
 
       final centro = Offset(
-        larguraEtiqueta + larguraCasa * p.casa + larguraCasa / 2,
-        alturaCabecalho + alturaCorda * linha + alturaCorda / 2,
+        larguraEtiqueta +
+            larguraCasa * posicao.casa +
+            larguraCasa / 2,
+        alturaCabecalho +
+            alturaCorda * indiceCorda +
+            alturaCorda / 2,
       );
 
-      final areaDedo = RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: centro,
-          width: 30,
-          height: 30,
-        ),
-        const Radius.circular(15),
-      );
+      const raio = 15.0;
 
-      canvas.drawRRect(areaDedo, fundoDedo);
-      canvas.drawRRect(areaDedo, bordaDedo);
+      canvas.drawCircle(centro, raio, tintaDedo);
+      canvas.drawCircle(centro, raio, tintaBorda);
 
-      final numero = TextPainter(
+      final painter = TextPainter(
         text: TextSpan(
-          text: '${p.dedo}',
-          style: estiloNumero,
+          text: '${posicao.dedo}',
+          style: tintaTexto,
         ),
         textDirection: TextDirection.ltr,
       )..layout();
 
-      numero.paint(
+      painter.paint(
         canvas,
         Offset(
-          centro.dx - numero.width / 2,
-          centro.dy - numero.height / 2,
+          centro.dx - painter.width / 2,
+          centro.dy - painter.height / 2,
         ),
       );
     }
